@@ -5,10 +5,8 @@ from functools import partial, wraps
 from typing import Callable, Sequence, Set
 from urllib.parse import urlparse
 
-import pandas as pd
 import visions
 from multimethod import multimethod
-from pandas.api import types as pdt
 from pandas_profiling.config import Settings
 from pandas_profiling.model.typeset_relations import (
     category_is_numeric,
@@ -25,6 +23,9 @@ from pandas_profiling.model.typeset_relations import (
 )
 from visions.backends.pandas.series_utils import series_not_empty
 from visions.relations import IdentityRelation, InferenceRelation, TypeRelation
+
+import pandas as pd
+from pandas.api import types as pdt
 
 pandas_has_string_dtype_flag = hasattr(pdt, "is_string_dtype")
 
@@ -51,6 +52,8 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
     """Define types based on the config"""
 
     class Unsupported(visions.Generic):
+        """Base type. All other types have relationship with this type."""
+
         pass
 
     class Numeric(visions.VisionsBaseType):
@@ -133,11 +136,7 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         @series_not_empty
         @series_handle_nulls
         def contains_op(series: pd.Series, state: dict) -> bool:
-            if not pdt.is_object_dtype(series):
-                return pandas_has_string_dtype_flag and pdt.is_string_dtype(series)
-            return pdt.is_datetime64_any_dtype(series) or string_is_datetime(
-                series, state
-            )
+            return pdt.is_datetime64_any_dtype(series)
 
     class Categorical(visions.VisionsBaseType):
         """Type for categorical columns.
@@ -154,7 +153,6 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         def get_relations() -> Sequence[TypeRelation]:
             return [
                 IdentityRelation(Unsupported),
-                IdentityRelation(String),
                 InferenceRelation(
                     Numeric,
                     relationship=lambda x, y: partial(numeric_is_category, k=config)(
@@ -164,7 +162,7 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
                 ),
                 InferenceRelation(
                     String,
-                    relationship=lambda x, y: partial(numeric_is_category, k=config)(
+                    relationship=lambda x, y: partial(string_is_category, k=config)(
                         x, y
                     ),
                     transformer=to_category,
@@ -183,8 +181,7 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
                 return True
             elif not pdt.is_object_dtype(series):
                 return pandas_has_string_dtype_flag and pdt.is_string_dtype(series)
-
-            return series_is_string(series, state) and string_is_category(series, state)
+            return False
 
     class Boolean(visions.VisionsBaseType):
         @staticmethod

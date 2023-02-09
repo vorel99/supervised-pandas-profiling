@@ -66,11 +66,11 @@ def series_is_string(series: pd.Series, state: dict) -> bool:
 
 
 @series_handle_nulls
-def string_is_category(series: pd.Series, state: dict) -> bool:
+def string_is_category(series: pd.Series, state: dict, k: Settings) -> bool:
     """String is category, if there is less than 1/4 unique values than all values."""
-    if series.size / 4 > series.unique().size:
-        return True
-    return False
+    n_unique = series.nunique()
+    threshold = k.vars.num.low_categorical_threshold
+    return 1 <= n_unique <= threshold
 
 
 @series_handle_nulls
