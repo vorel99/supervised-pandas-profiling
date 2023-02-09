@@ -2,11 +2,11 @@ import functools
 from typing import Callable
 
 import numpy as np
-import pandas as pd
-from pandas.api import types as pdt
+from pandas_profiling.config import Settings
 from visions.backends.pandas.series_utils import series_handle_nulls
 
-from pandas_profiling.config import Settings
+import pandas as pd
+from pandas.api import types as pdt
 
 
 def is_nullable(series: pd.Series, state: dict) -> bool:
@@ -66,6 +66,23 @@ def series_is_string(series: pd.Series, state: dict) -> bool:
 
 
 @series_handle_nulls
+def string_is_category(series: pd.Series, state: dict) -> bool:
+    """String is category, if there is less than 1/4 unique values than all values."""
+    if series.size / 4 > series.unique().size:
+        return True
+    return False
+
+
+@series_handle_nulls
+def string_is_datetime(series: pd.Series, state: dict) -> bool:
+    try:
+        series.astype("datetime64")
+        return True
+    except:
+        return False
+
+
+@series_handle_nulls
 def category_is_numeric(series: pd.Series, state: dict, k: Settings) -> bool:
     if pdt.is_bool_dtype(series) or object_is_bool(series, state):
         return False
@@ -79,6 +96,10 @@ def category_is_numeric(series: pd.Series, state: dict, k: Settings) -> bool:
         return False
 
     return not numeric_is_category(series, state, k)
+
+
+def string_to_datetime(series: pd.Series, state: dict) -> pd.Series:
+    return series.astype("datetime64")
 
 
 def category_to_numeric(series: pd.Series, state: dict) -> pd.Series:

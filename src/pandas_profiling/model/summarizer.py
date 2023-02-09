@@ -62,6 +62,9 @@ class PandasProfilingSummarizer(BaseSummarizer):
             "DateTime": [
                 describe_date_1d,
             ],
+            "String": [
+                describe_categorical_1d,
+            ],
             "Categorical": [
                 describe_categorical_1d,
             ],

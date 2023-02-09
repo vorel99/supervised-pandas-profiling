@@ -9,9 +9,6 @@ import pandas as pd
 import visions
 from multimethod import multimethod
 from pandas.api import types as pdt
-from visions.backends.pandas.series_utils import series_not_empty
-from visions.relations import IdentityRelation, InferenceRelation, TypeRelation
-
 from pandas_profiling.config import Settings
 from pandas_profiling.model.typeset_relations import (
     category_is_numeric,
@@ -19,10 +16,15 @@ from pandas_profiling.model.typeset_relations import (
     numeric_is_category,
     series_is_string,
     string_is_bool,
+    string_is_category,
+    string_is_datetime,
     string_to_bool,
+    string_to_datetime,
     to_bool,
     to_category,
 )
+from visions.backends.pandas.series_utils import series_not_empty
+from visions.relations import IdentityRelation, InferenceRelation, TypeRelation
 
 pandas_has_string_dtype_flag = hasattr(pdt, "is_string_dtype")
 
@@ -52,6 +54,14 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         pass
 
     class Numeric(visions.VisionsBaseType):
+        """Type for all numeric (float, int) columns.
+
+        Examples
+        --------
+        >>> pd.Series([1, 2, 5, 3, 8, 9])
+        >>> pd.Series([.34, 2.9, 55, 3.14, 89, 91])
+        """
+
         @staticmethod
         def get_relations() -> Sequence[TypeRelation]:
             return [
@@ -72,7 +82,27 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         def contains_op(series: pd.Series, state: dict) -> bool:
             return pdt.is_numeric_dtype(series) and not pdt.is_bool_dtype(series)
 
-    class DateTime(visions.VisionsBaseType):
+    class String(visions.VisionsBaseType):
+        """Type for plaintext columns.
+        Like name, note, string identifier, residence etc.
+
+        Examples
+        --------
+        >>> pd.Series(["AX01", "BC32", "AC00"])
+        >>> pd.Series([
+                        "Peggy Holt",
+                        "Marina Mayo",
+                        "Hussain Baker",
+                        "Salman Joyce",
+                        "Keeley Stanley",
+                        "Theodore Summers",
+                        "Yasmine Delacruz",
+                        "Mahdi Munoz",
+                        "Riley Fulton",
+                        "Tomos Butler",
+                    ])
+        """
+
         @staticmethod
         def get_relations() -> Sequence[TypeRelation]:
             return [
@@ -84,15 +114,56 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         @series_not_empty
         @series_handle_nulls
         def contains_op(series: pd.Series, state: dict) -> bool:
-            return pdt.is_datetime64_any_dtype(series)
+            return series_is_string(series, state)
 
-    class Categorical(visions.VisionsBaseType):
+    class DateTime(visions.VisionsBaseType):
         @staticmethod
         def get_relations() -> Sequence[TypeRelation]:
             return [
                 IdentityRelation(Unsupported),
                 InferenceRelation(
+                    String,
+                    relationship=lambda x, y: partial(string_is_datetime)(x, y),
+                    transformer=string_to_datetime,
+                ),
+            ]
+
+        @staticmethod
+        @multimethod
+        @series_not_empty
+        @series_handle_nulls
+        def contains_op(series: pd.Series, state: dict) -> bool:
+            if not pdt.is_object_dtype(series):
+                return pandas_has_string_dtype_flag and pdt.is_string_dtype(series)
+            return pdt.is_datetime64_any_dtype(series) or string_is_datetime(
+                series, state
+            )
+
+    class Categorical(visions.VisionsBaseType):
+        """Type for categorical columns.
+        Categorical columns in pandas categorical format
+        and columns in string format with small count of unique values.
+
+        Examples
+        --------
+        >>> pd.Series(["male", "female", "female", "male", "female"])
+        >>> pd.Series(["class 1", "class 3", "class 1", "class 2"])
+        """
+
+        @staticmethod
+        def get_relations() -> Sequence[TypeRelation]:
+            return [
+                IdentityRelation(Unsupported),
+                IdentityRelation(String),
+                InferenceRelation(
                     Numeric,
+                    relationship=lambda x, y: partial(numeric_is_category, k=config)(
+                        x, y
+                    ),
+                    transformer=to_category,
+                ),
+                InferenceRelation(
+                    String,
                     relationship=lambda x, y: partial(numeric_is_category, k=config)(
                         x, y
                     ),
@@ -113,7 +184,7 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
             elif not pdt.is_object_dtype(series):
                 return pandas_has_string_dtype_flag and pdt.is_string_dtype(series)
 
-            return series_is_string(series, state)
+            return series_is_string(series, state) and string_is_category(series, state)
 
     class Boolean(visions.VisionsBaseType):
         @staticmethod
@@ -223,7 +294,7 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
             is_numeric = pdt.is_numeric_dtype(series) and not pdt.is_bool_dtype(series)
             return is_numeric and is_timedependent(series)
 
-    types = {Unsupported, Boolean, Numeric, Categorical, DateTime}
+    types = {Unsupported, Boolean, Numeric, String, Categorical, DateTime}
     if config.vars.path.active:
         types.add(Path)
         if config.vars.file.active:
