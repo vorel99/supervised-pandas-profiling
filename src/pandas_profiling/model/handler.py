@@ -1,8 +1,9 @@
 from functools import reduce
-from typing import Any, Callable, Dict, List, Sequence, Optional
-from pandas_profiling.config import Settings
-import pandas as pd
+from typing import Any, Callable, Dict, List, Optional, Sequence
+
 import networkx as nx
+import pandas as pd
+from pandas_profiling.config import Settings
 from visions import VisionsTypeset
 
 
@@ -79,6 +80,8 @@ def get_render_map() -> Dict[str, Callable[[Settings, Dict[str, Any]], Dict]]:
         "Boolean": render_algorithms.render_boolean,
         "Numeric": render_algorithms.render_real,
         "Complex": render_algorithms.render_complex,
+        # TODO create render for string column
+        "String": render_algorithms.render_categorical,
         "DateTime": render_algorithms.render_date,
         "Categorical": render_algorithms.render_categorical,
         "URL": render_algorithms.render_url,
