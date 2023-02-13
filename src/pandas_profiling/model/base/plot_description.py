@@ -17,6 +17,8 @@ class BasePlotDescription:
         Name of target column.
     count_col_name : str
         Name of count column in preprocessed DataFrames.
+    log_odds_col_name : str
+        Name of log2odds column in log_odds DataFrame.
     log_odds : pd.DataFrame
         Prepared data to plot log_odds plot for supervised plot.
 
@@ -25,14 +27,20 @@ class BasePlotDescription:
 
     __data_col_name: str
     __target_col_name: str
-    __distribution: pd.DataFrame
+    _data_col: pd.Series
+    _target_col: pd.Series
 
-    _count_col_name: str = "count"
-    _log_odds_col_name: str = "log_odds"
+    __distribution: pd.DataFrame
     __log_odds: Optional[pd.DataFrame] = None
 
+    __count_col_name: str = "count"
+    __log_odds_col_name: str = "log_odds"
+
     def __init__(self, data_col: pd.Series, target_col: Optional[pd.Series]) -> None:
-        """
+        """Setup column names for data_col and target_col.
+
+        Parameters
+        ----------
         data_col: pd.Series
             data column
         target_col: pd.Series or None
@@ -52,7 +60,7 @@ class BasePlotDescription:
 
     @property
     def count_col_name(self) -> str:
-        return self._count_col_name
+        return self.__count_col_name
 
     @property
     def distribution(self) -> pd.DataFrame:
@@ -71,7 +79,8 @@ class BasePlotDescription:
 
     @property
     def log_odds(self) -> pd.DataFrame:
-        """Returns DataFrame with log odds for data column"""
+        """Returns DataFrame with relative log2odds for data column.
+        Log2odds is relative to other categories."""
         if self.__log_odds is None:
             raise ValueError(f"log_odds not found in '{self.data_col_name}'")
         return self.__log_odds
@@ -79,9 +88,7 @@ class BasePlotDescription:
     @property
     def log_odds_col_name(self) -> str:
         """DataFrame with log odds information"""
-        if self.__log_odds is None:
-            self.__generate_log_odds()
-        return self._log_odds_col_name
+        return self.__log_odds_col_name
 
     def __prepare_data_col(self, data_col: pd.Series) -> None:
         """Fills col name, if None.
@@ -91,6 +98,7 @@ class BasePlotDescription:
         if data_col.name is None:
             data_col.name = "data_col"
         self.__data_col_name = str(data_col.name)
+        self._data_col = data_col
 
     def __prepare_target_col(self, target_col: Optional[pd.Series]) -> None:
         if target_col is None:
@@ -99,6 +107,7 @@ class BasePlotDescription:
         if target_col.name is None:
             target_col.name = "target_col"
         self.__target_col_name = str(target_col.name)
+        self._target_col = target_col
 
     def __check_columns(self, df: pd.DataFrame):
         """Checks if df contains all columns (data_col, target_col, count_col)
@@ -133,7 +142,8 @@ class BasePlotDescription:
         self.__log_odds = log_odds
 
     def _validate(self, distribution: pd.DataFrame) -> None:
-        """Validates distribution DataFrame"""
+        """Validate distribution DataFrame
+        and assign distribution to self._distribution."""
         if not isinstance(distribution, pd.DataFrame):
             raise ValueError("Preprocessed plot must be pd.DataFrame instance.")
         self.__check_columns(distribution)

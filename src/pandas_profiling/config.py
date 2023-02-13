@@ -138,6 +138,8 @@ class CorrelationPlot(BaseModel):
 class Histogram(BaseModel):
     # Number of bins (set to 0 to automatically detect the bin size)
     bins: int = 50
+    # Number of bins for supervised histogram
+    bins_supervised: int = 5
     # Maximum number of bins (when bins=0)
     max_bins: int = 250
     x_axis_labels: bool = True

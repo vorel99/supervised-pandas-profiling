@@ -2,7 +2,6 @@ from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-
 from pandas_profiling.utils.compat import pandas_version_info
 
 if pandas_version_info() >= (1, 5):
@@ -166,8 +165,12 @@ def pandas_describe_numeric_1d(
         )
     )
 
+    if target_col is None:
+        plot_bins = config.plot.histogram.bins
+    else:
+        plot_bins = config.plot.histogram.bins_supervised
     stats["plot_description"] = NumericPlotDescriptionPandas(
-        series, target_col, config.plot.histogram.bins
+        series, target_col, plot_bins
     )
 
     return config, series, stats, target_col

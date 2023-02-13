@@ -6,6 +6,9 @@ from pandas_profiling.model.base.plot_description import BasePlotDescription
 
 
 class CategoricalPlotDescriptionPandas(BasePlotDescription):
+    _other_placeholder: str = "other ..."
+    _max_cat_to_plot: int
+
     def __init__(
         self, data_col: pd.Series, target_col: Optional[pd.Series], max_cat_to_plot: int
     ) -> None:
@@ -24,13 +27,16 @@ class CategoricalPlotDescriptionPandas(BasePlotDescription):
         data_col = data_col.astype(str)
         super().__init__(data_col, target_col)
 
-        self._other_placeholder = "other ..."
         self._max_cat_to_plot = max_cat_to_plot
 
         # we have 2 different columns
-        if target_col is not None and self.data_col_name != self.target_col_name:
+        if self._target_col is not None and self.data_col_name != self.target_col_name:
             # join columns by id
-            data = data_col.to_frame().join(target_col, how="inner").astype(str)
+            data = (
+                self._data_col.to_frame()
+                .join(self._target_col, how="inner")
+                .astype(str)
+            )
             distribution = data.groupby(data.columns.to_list()).size().reset_index()
             distribution.rename(columns={0: self.count_col_name}, inplace=True)
         else:
@@ -95,27 +101,27 @@ class NumericPlotDescriptionPandas(BasePlotDescription):
         self, data_col: pd.Series, target_col: Optional[pd.Series], max_bar_count: int
     ) -> None:
         super().__init__(data_col, target_col)
+        self._bars = max_bar_count
 
-        def get_hist(col: pd.Series) -> pd.DataFrame:
-            """Returns DataFrame with 2 columns (bin_center, count)"""
-            hist, bin_edges = np.histogram(col, range=my_range, bins=max_bar_count)
-            bin_centers = [
-                (bin_edges[i] + bin_edges[i + 1]) / 2 for i in range(len(bin_edges) - 1)
-            ]
-            return pd.DataFrame(
-                data={self.data_col_name: bin_centers, self.count_col_name: hist}
-            )
-
-        my_range = (data_col.min(), data_col.max())
-        max_bar_count = min(max_bar_count, data_col.nunique())
-        # we have target column and one different column
-        if target_col is not None and self.data_col_name != self.target_col_name:
-            distribution = pd.DataFrame()
-            for target_value in target_col.unique():
-                tmp = get_hist(data_col[target_col == target_value])
-                tmp[self.target_col_name] = target_value
-                distribution = pd.concat([distribution, tmp])
-        else:
-            distribution = get_hist(data_col)
-
+        distribution = self._get_distribution()
         self._validate(distribution)
+
+    def _get_distribution(self) -> pd.DataFrame:
+        """Cut continuous variable to bins.
+
+        Returns
+        -------
+        data : pd.DataFrame
+            Binned and grouped data.
+        """
+        # join columns by id
+        data = pd.DataFrame()
+        data[self.data_col_name] = pd.cut(self._data_col, bins=self._bars, precision=0)
+        data[self.count_col_name] = 0
+        if self.target_col_name is not None:
+            data = data.join(self._target_col, how="inner")
+            sub = [self.data_col_name, self.target_col_name]
+        else:
+            sub = [self.data_col_name]
+        data = data.groupby(sub)[self.count_col_name].count().reset_index()
+        return data
