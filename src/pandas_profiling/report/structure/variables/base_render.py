@@ -16,16 +16,12 @@ class BaseRenderVariable(metaclass=ABCMeta):
         """Return rendered basic info about variable."""
         return VariableInfo(
             anchor_id=self.summary["varid"],
-            alerts=self.summary["alerts"],
+            var_name=self.summary["varname"],
             var_type=self.summary["type"],
-            var_name=self.name,
+            alerts=self.summary["alerts"],
             description=self.summary["description"],
             style=self.config.html.style,
         )
-
-    @abstractproperty
-    def name(self) -> str:
-        pass
 
     @abstractmethod
     def _get_top(self):
