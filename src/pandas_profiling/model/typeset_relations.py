@@ -67,14 +67,16 @@ def series_is_string(series: pd.Series, state: dict) -> bool:
 
 @series_handle_nulls
 def string_is_category(series: pd.Series, state: dict, k: Settings) -> bool:
-    """String is category, if there is less categories than threshold
-    and there is less unique values than half and the series is not boolean type."""
+    """String is category, if following conditions are met
+    - has at least one and less or equal distinct values as threshold
+    - (distinct values / count of all values) is less than threshold
+    - is not bool"""
     n_unique = series.nunique()
     unique_threshold = k.vars.cat.unique_percentage_threshold
     threshold = k.vars.cat.cardinality_threshold
     return (
         1 <= n_unique <= threshold
-        and n_unique / series.size <= unique_threshold
+        and n_unique / series.size < unique_threshold
         and not string_is_bool(series, state, k.vars.bool.mappings)
     )
 
