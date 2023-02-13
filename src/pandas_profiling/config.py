@@ -54,6 +54,7 @@ class CatVars(BaseModel):
     characters: bool = True
     words: bool = True
     cardinality_threshold: int = 50
+    unique_percentage_threshold: float = 0.5
     n_obs: int = 5
     # Set to zero to disable
     chi_squared_threshold: float = 0.999
