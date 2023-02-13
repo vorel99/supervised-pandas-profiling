@@ -13,7 +13,7 @@ from matplotlib.colors import Colormap, LinearSegmentedColormap, ListedColormap,
 from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
 from pandas_profiling.config import Settings
-from pandas_profiling.model.base.plot_description import BasePlotDescription
+from pandas_profiling.model.description_plot import BasePlotDescription
 from pandas_profiling.utils.common import convert_timestamp_to_datetime
 from pandas_profiling.visualisation.context import manage_matplotlib_context
 from pandas_profiling.visualisation.utils import plot_360_n0sc0pe

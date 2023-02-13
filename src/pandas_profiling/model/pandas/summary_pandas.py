@@ -5,14 +5,14 @@ import multiprocessing.pool
 from typing import Optional, Tuple
 
 import numpy as np
-import pandas as pd
-from tqdm import tqdm
-from visions import VisionsTypeset
-
 from pandas_profiling.config import Settings
 from pandas_profiling.model.summarizer import BaseSummarizer
 from pandas_profiling.model.summary import describe_1d, get_series_descriptions
 from pandas_profiling.utils.dataframe import sort_column_names
+from tqdm import tqdm
+from visions import VisionsTypeset
+
+import pandas as pd
 
 
 @describe_1d.register
