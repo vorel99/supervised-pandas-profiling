@@ -1,18 +1,11 @@
-import contextlib
-import string
-from collections import Counter
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
-import numpy as np
 import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.pandas.describe_categorical_pandas import (
     length_summary_vc,
     unicode_summary_vc,
     word_summary_vc,
-)
-from pandas_profiling.model.pandas.plot_description_pandas import (
-    CategoricalPlotDescriptionPandas,
 )
 from pandas_profiling.model.summary_algorithms import (
     describe_string_1d,
