@@ -4,13 +4,11 @@ from collections import Counter
 from typing import List, Optional, Tuple
 
 import numpy as np
-import pandas as pd
-
 from pandas_profiling.config import Settings
-from pandas_profiling.model.pandas.utils_pandas import weighted_median
-from pandas_profiling.model.pandas.plot_description_pandas import (
+from pandas_profiling.model.pandas.description_plot_pandas import (
     CategoricalPlotDescriptionPandas,
 )
+from pandas_profiling.model.pandas.utils_pandas import weighted_median
 from pandas_profiling.model.summary_algorithms import (
     chi_square,
     describe_categorical_1d,
@@ -18,6 +16,8 @@ from pandas_profiling.model.summary_algorithms import (
     series_handle_nulls,
     series_hashable,
 )
+
+import pandas as pd
 
 
 def get_character_counts_vc(vc: pd.Series) -> pd.Series:
@@ -57,13 +57,8 @@ def counter_to_series(counter: Counter) -> pd.Series:
 
 def unicode_summary_vc(vc: pd.Series) -> dict:
     try:
-        from tangled_up_in_unicode import (  # type: ignore
-            block,
-            block_abbr,
-            category,
-            category_long,
-            script,
-        )
+        from tangled_up_in_unicode import block_abbr  # type: ignore
+        from tangled_up_in_unicode import block, category, category_long, script
     except ImportError:
         from unicodedata import category as _category  # pylint: disable=import-error
 

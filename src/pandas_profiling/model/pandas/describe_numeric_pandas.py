@@ -10,7 +10,7 @@ else:
     from pandas.core.arrays.integer import _IntegerDtype as IntegerDtype
 
 from pandas_profiling.config import Settings
-from pandas_profiling.model.pandas.plot_description_pandas import (
+from pandas_profiling.model.pandas.description_plot_pandas import (
     NumericPlotDescriptionPandas,
 )
 from pandas_profiling.model.summary_algorithms import (

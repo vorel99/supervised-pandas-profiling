@@ -2,10 +2,44 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from pandas_profiling.model.base.plot_description import BasePlotDescription
+from pandas_profiling.model.description_plot import BasePlotDescription
 
 
-class CategoricalPlotDescriptionPandas(BasePlotDescription):
+class PlotDescriptionPandas(BasePlotDescription):
+    """Base class for pandas plot description."""
+
+    _data_col: pd.Series
+    _target_col: Optional[pd.Series]
+
+    def __init__(self, data_col: pd.Series, target_col: Optional[pd.Series]) -> None:
+        self._data_col = data_col
+        self._target_col = target_col
+        data_col_name = self.__prepare_data_col_name(data_col)
+        target_col_name = self.__prepare_target_col_name(target_col)
+        super().__init__(data_col_name, target_col_name)
+
+    @classmethod
+    def __prepare_data_col_name(cls, data_col: pd.Series) -> str:
+        """Fills col name, if None.
+
+        Returns column name
+        """
+        if data_col.name is None:
+            data_col.name = "data_col"
+        return str(data_col.name)
+
+    @classmethod
+    def __prepare_target_col_name(
+        cls, target_col: Optional[pd.Series]
+    ) -> Optional[str]:
+        if target_col is None:
+            return None
+        if target_col.name is None:
+            target_col.name = "target_col"
+        return str(target_col.name)
+
+
+class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
     _other_placeholder: str = "other ..."
     _max_cat_to_plot: int
 
@@ -51,7 +85,7 @@ class CategoricalPlotDescriptionPandas(BasePlotDescription):
 
         # add column for label position
         distribution = self._add_labels_location(distribution)
-        self._validate(distribution)
+        self._set_distribution(distribution)
 
     def _limit_count(self, df: pd.DataFrame) -> pd.DataFrame:
         """Limit count of displayed categories to max_cat.
@@ -96,7 +130,7 @@ class CategoricalPlotDescriptionPandas(BasePlotDescription):
         return df
 
 
-class NumericPlotDescriptionPandas(BasePlotDescription):
+class NumericPlotDescriptionPandas(PlotDescriptionPandas):
     def __init__(
         self, data_col: pd.Series, target_col: Optional[pd.Series], max_bar_count: int
     ) -> None:
@@ -104,7 +138,7 @@ class NumericPlotDescriptionPandas(BasePlotDescription):
         self._bars = max_bar_count
 
         distribution = self._get_distribution()
-        self._validate(distribution)
+        self._set_distribution(distribution)
 
     def _get_distribution(self) -> pd.DataFrame:
         """Cut continuous variable to bins.
@@ -118,7 +152,7 @@ class NumericPlotDescriptionPandas(BasePlotDescription):
         data = pd.DataFrame()
         data[self.data_col_name] = pd.cut(self._data_col, bins=self._bars, precision=0)
         data[self.count_col_name] = 0
-        if self.target_col_name is not None:
+        if self._target_col is not None:
             data = data.join(self._target_col, how="inner")
             sub = [self.data_col_name, self.target_col_name]
         else:
