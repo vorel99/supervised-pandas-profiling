@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict
 
@@ -35,7 +35,7 @@ class BaseRenderVariable(metaclass=ABCMeta):
 
     def render(self):
         """Return template for variable prot."""
-        template_variables = render_common(self.config, self.summary)
+        template_variables = {}
         template_variables["top"] = self._get_top()
         template_variables["bottom"] = self._get_bottom()
         return template_variables
