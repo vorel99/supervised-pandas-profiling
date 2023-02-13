@@ -2,6 +2,7 @@ from functools import reduce
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import networkx as nx
+import pandas as pd
 from pandas_profiling.config import Settings
 from visions import VisionsTypeset
 
