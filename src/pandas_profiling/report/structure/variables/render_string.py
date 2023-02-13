@@ -70,6 +70,12 @@ class RenderString(BaseRenderVariable):
         return Container(top_items, sequence_type="grid")
 
     def _get_overview(self) -> Container:
+        """Render overview container.
+
+        Contains
+        - string length
+        - unique statistic
+        - sample of data"""
         overview_items = []
         length_table, length_histo = render_categorical_length(
             self.config, self.summary, self.summary["varid"]
@@ -120,7 +126,12 @@ class RenderString(BaseRenderVariable):
             titles=False,
         )
 
-    def _get_words(self):
+    def _get_words(self) -> Container:
+        """Render words container.
+
+        Contains
+        - frequency table of words
+        - word map"""
         woc = freq_table(
             freqtable=self.summary["word_counts"],
             n=_get_n(self.summary["word_counts"]),
@@ -148,6 +159,11 @@ class RenderString(BaseRenderVariable):
         )
 
     def _get_bottom(self) -> Container:
+        """Render bottom section of variable.
+
+        Contains
+        - overview container
+        - words container"""
         bottom_items = []
         bottom_items.append(self._get_overview())
         if self.config.vars.str.words:

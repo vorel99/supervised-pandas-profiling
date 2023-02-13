@@ -74,7 +74,7 @@ def string_is_category(series: pd.Series, state: dict, k: Settings) -> bool:
     threshold = k.vars.cat.cardinality_threshold
     return (
         1 <= n_unique <= threshold
-        and n_unique / series.size < unique_threshold
+        and n_unique / series.size <= unique_threshold
         and not string_is_bool(series, state, k.vars.bool.mappings)
     )
 

@@ -18,7 +18,7 @@ from pandas_profiling.model.summary_algorithms import (
 @describe_string_1d.register
 @series_hashable
 @series_handle_nulls
-def pandas_describe_categorical_1d(
+def pandas_describe_string_1d(
     config: Settings,
     series: pd.Series,
     summary: dict,

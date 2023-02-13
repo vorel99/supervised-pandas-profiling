@@ -64,8 +64,13 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
 
         Examples
         --------
-        >>> pd.Series([1, 2, 5, 3, 8, 9])
-        >>> pd.Series([.34, 2.9, 55, 3.14, 89, 91])
+        >>> s = pd.Series([1, 2, 5, 3, 8, 9])
+        >>> s in Numeric
+        True
+
+        >>> s = pd.Series([.34, 2.9, 55, 3.14, 89, 91])
+        >>> s in Numeric
+        True
         """
 
         @staticmethod
@@ -141,7 +146,7 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         and columns in string format with small count of unique values.
 
         Can be transformed from:
-            - Unsuported
+            - Unsupported
             - Numeric
             - String
 
@@ -151,9 +156,13 @@ def typeset_types(config: Settings) -> Set[visions.VisionsBaseType]:
         >>> s in Categorical
         True
 
-        >>> s = pd.Series(["male", "female", "female", "male"])
+        >>> s = pd.Series(["male", "female"])
         >>> s in Categorical
         False
+
+        >>> s = pd.Series(["male", "female", "female", "male"])
+        >>> s in Categorical
+        True
         """
 
         @staticmethod
