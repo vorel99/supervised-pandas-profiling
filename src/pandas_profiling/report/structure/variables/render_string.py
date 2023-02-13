@@ -70,12 +70,17 @@ class RenderString(BaseRenderVariable):
         return Container(top_items, sequence_type="grid")
 
     def _get_overview(self) -> Container:
+        overview_items = []
         length_table, length_histo = render_categorical_length(
             self.config, self.summary, self.summary["varid"]
         )
+        overview_items.append(length_table)
+
         unique_stats = render_categorical_frequency(
             self.config, self.summary, self.summary["varid"]
         )
+        overview_items.append(unique_stats)
+
         if not self.config.vars.cat.redact:
             rows = ("1st row", "2nd row", "3rd row", "4th row", "5th row")
 
@@ -105,7 +110,7 @@ class RenderString(BaseRenderVariable):
                     name="Sample",
                     style=self.config.html.style,
                 )
-        overview_items = [length_table, unique_stats, sample]
+            overview_items.append(sample)
         return Container(
             overview_items,
             name="Overview",
