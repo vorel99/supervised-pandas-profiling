@@ -29,7 +29,7 @@ class BasePlotDescription:
     target_col_name: Optional[str]
 
     __distribution: pd.DataFrame
-    __log_odds: Optional[pd.DataFrame]
+    __log_odds: Optional[pd.DataFrame] = None
 
     count_col_name: str = "count"
     log_odds_col_name: str = "log_odds"
