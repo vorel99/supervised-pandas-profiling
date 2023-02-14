@@ -63,11 +63,11 @@ def _plot_cat_log_odds(
             x=desc_plot.log_odds_col_name,
             y=desc_plot.data_col_name,
         )
-        .add(so.Bar(color=color))
+        .add(so.Bar(alpha=1, color=color))
         .add(
             so.Text(
                 {"fontweight": "bold", "clip_on": False},
-                color=color,
+                color="black",
             ),
             halign=desc_plot.log_odds_text_col,
             text=desc_plot.log_odds_col_name,
@@ -77,7 +77,7 @@ def _plot_cat_log_odds(
     p = (
         p.layout(size=figsize)
         .theme({"axes.facecolor": "w"})
-        .label(title="Relative log 2 odds", x="", y="")
+        .label(title="Log2 odds", x="", y="")
     )
     return p.plot(pyplot=True)
 
@@ -164,18 +164,22 @@ def _plot_hist_log_odds(
             x=desc_plot.data_col_name,
             y=desc_plot.log_odds_col_name,
         )
-        .add(so.Bar(color=color))
+        .add(so.Bar(alpha=1, color=color))
         .add(
             so.Text(
                 {"fontweight": "bold", "clip_on": False},
                 valign="bottom",
-                color=color,
+                color="black",
             ),
             text="log_odds",
         )
     )
     p = p.scale(y=so.Continuous().tick(count=0))
-    p = p.layout(size=figsize).theme({"axes.facecolor": "w"}).label(x="", y="log odds")
+    p = (
+        p.layout(size=figsize)
+        .theme({"axes.facecolor": "w"})
+        .label(title="Log2 odds", x="", y="")
+    )
     return p.plot(pyplot=True)
 
 
@@ -225,7 +229,11 @@ def _plot_hist_dist(
             desc_plot.n_target_value: color_negative,
         },
     )
-    p = p.layout(size=figsize).theme({"axes.facecolor": "w"}).label(x="", y="")
+    p = (
+        p.layout(size=figsize)
+        .theme({"axes.facecolor": "w"})
+        .label(title="Distribution", x="", y="")
+    )
     return p.plot(pyplot=True)
 
 
