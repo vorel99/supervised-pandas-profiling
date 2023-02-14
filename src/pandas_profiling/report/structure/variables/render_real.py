@@ -140,14 +140,14 @@ def render_real(config: Settings, summary: dict) -> dict:
             alt="Mini histogram",
         )
 
-    mini_histo_so = Image(
+    mini_real_dist = Image(
         plot_hist_dist(config, summary["plot_description"], mini=True),
         image_format=image_format,
         alt="Mini histogram",
     )
 
     template_variables["top"] = Container(
-        [info, table1, table2, mini_histo, mini_histo_so], sequence_type="grid"
+        [info, table1, table2, mini_real_dist], sequence_type="grid"
     )
 
     # ==================================================================================
