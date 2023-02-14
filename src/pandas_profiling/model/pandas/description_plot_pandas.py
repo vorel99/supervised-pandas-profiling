@@ -220,6 +220,4 @@ class NumericPlotDescriptionPandas(PlotDescriptionPandas):
             sub = [self.data_col_name]
         # aggregate bins
         data = data.groupby(sub)[self.count_col_name].count().reset_index()
-        print(data)
-        print(data.dtypes)
         return data
