@@ -40,7 +40,7 @@ class PlotDescriptionPandas(BasePlotDescription):
     """Base class for pandas plot description."""
 
     _data_col: pd.Series
-    _target_col: Optional[pd.Series]
+    _target_col: Optional[pd.Series] = None
 
     def __init__(
         self,
