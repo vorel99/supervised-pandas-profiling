@@ -204,14 +204,22 @@ class NumericPlotDescriptionPandas(PlotDescriptionPandas):
         """
         # join columns by id
         data = pd.DataFrame()
+        # add bins (10, 20]
         data[self.data_col_name] = pd.cut(self._data_col, bins=self._bars, precision=0)
         data[self.count_col_name] = 0
+        # supervised
         if self._target_col is not None:
             data = data.join(self._target_col, how="inner")
+            data[self.data_col_name] = data[self.data_col_name].astype(str)
             sub = [self.data_col_name, self.target_col_name]
+        # unsupervised
         else:
+            # replace bins with middle value (10, 20] -> 15
+            data[self.data_col_name] = data[self.data_col_name].apply(lambda x: x.mid)
+            data[self.data_col_name] = data[self.data_col_name].astype(float)
             sub = [self.data_col_name]
         # aggregate bins
         data = data.groupby(sub)[self.count_col_name].count().reset_index()
-        data[self.data_col_name] = data[self.data_col_name].astype(str)
+        print(data)
+        print(data.dtypes)
         return data

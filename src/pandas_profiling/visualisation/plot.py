@@ -220,7 +220,7 @@ def _plot_hist_dist(
         )
     # unsupervised
     else:
-        p.add(so.Bars(alpha=1))
+        p = p.add(so.Bars(alpha=1))
 
     p = p.scale(
         y=so.Continuous().tick(count=0),
