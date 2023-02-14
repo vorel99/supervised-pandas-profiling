@@ -1,8 +1,39 @@
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from pandas_profiling.model.description_plot import BasePlotDescription
+
+
+def get_unique_values(series: pd.Series) -> List[str]:
+    arr = series.astype(str).dropna().unique()
+    return list(arr)
+
+
+def get_target_values(
+    column: pd.Series, positive: Optional[str] = None
+) -> Tuple[str, str]:
+    """Return positive target value and negative target value."""
+    nunique = column.nunique()
+    if nunique != 2:
+        raise ValueError(
+            "In target should be just 2 unique values. {} were found.".format(nunique)
+        )
+
+    if positive is not None:
+        unique_values = get_unique_values(column)
+        unique_values.remove(str(positive))
+        negative_value = unique_values.pop()
+        return str(positive), negative_value
+
+    unique_values = get_unique_values(column)
+    for unique_value in unique_values:
+        # if value is positive value
+        if unique_value.casefold() in ["true", "1", "ok"]:
+            return get_target_values(column, unique_value)
+
+    # unable to infer
+    return unique_values[0], unique_values[1]
 
 
 class PlotDescriptionPandas(BasePlotDescription):
@@ -11,12 +42,25 @@ class PlotDescriptionPandas(BasePlotDescription):
     _data_col: pd.Series
     _target_col: Optional[pd.Series]
 
-    def __init__(self, data_col: pd.Series, target_col: Optional[pd.Series]) -> None:
+    def __init__(
+        self,
+        data_col: pd.Series,
+        target_col: Optional[pd.Series],
+        positive_target_value: Optional[str],
+    ) -> None:
         self._data_col = data_col
-        self._target_col = target_col
         data_col_name = self.__prepare_data_col_name(data_col)
         target_col_name = self.__prepare_target_col_name(target_col)
-        super().__init__(data_col_name, target_col_name)
+
+        if target_col is not None:
+            self._target_col = target_col.astype(str)
+
+            positive, negative = get_target_values(
+                self._target_col, positive_target_value
+            )
+        else:
+            positive, negative = None, None
+        super().__init__(data_col_name, target_col_name, positive, negative)
 
     @classmethod
     def __prepare_data_col_name(cls, data_col: pd.Series) -> str:
@@ -44,7 +88,11 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
     _max_cat_to_plot: int
 
     def __init__(
-        self, data_col: pd.Series, target_col: Optional[pd.Series], max_cat_to_plot: int
+        self,
+        data_col: pd.Series,
+        target_col: Optional[pd.Series],
+        positive_target_value: Optional[str],
+        max_cat_to_plot: int,
     ) -> None:
         """Prepare categorical data for plotting
 
@@ -59,7 +107,7 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
             all below threshold will be merged to other category
         """
         data_col = data_col.astype(str)
-        super().__init__(data_col, target_col)
+        super().__init__(data_col, target_col, positive_target_value)
 
         self._max_cat_to_plot = max_cat_to_plot
 
@@ -131,11 +179,17 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
 
 
 class NumericPlotDescriptionPandas(PlotDescriptionPandas):
+    """Plot description for numeric columns."""
+
     def __init__(
-        self, data_col: pd.Series, target_col: Optional[pd.Series], max_bar_count: int
+        self,
+        data_col: pd.Series,
+        target_col: Optional[pd.Series],
+        positive_target_value: Optional[str],
+        bar_count: int,
     ) -> None:
-        super().__init__(data_col, target_col)
-        self._bars = max_bar_count
+        super().__init__(data_col, target_col, positive_target_value)
+        self._bars = bar_count
 
         distribution = self._get_distribution()
         self._set_distribution(distribution)
@@ -157,5 +211,7 @@ class NumericPlotDescriptionPandas(PlotDescriptionPandas):
             sub = [self.data_col_name, self.target_col_name]
         else:
             sub = [self.data_col_name]
+        # aggregate bins
         data = data.groupby(sub)[self.count_col_name].count().reset_index()
+        data[self.data_col_name] = data[self.data_col_name].astype(str)
         return data

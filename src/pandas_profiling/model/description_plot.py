@@ -31,11 +31,23 @@ class BasePlotDescription:
     __distribution: pd.DataFrame
     __log_odds: Optional[pd.DataFrame] = None
 
+    p_target_value: Optional[str] = None  # positive target value
+    n_target_value: Optional[str] = None  # negative target value
+
     count_col_name: str = "count"
     log_odds_col_name: str = "log_odds"
 
-    def __init__(self, data_col_name: str, target_col_name: Optional[str]) -> None:
-        """Setup column names for data_col and target_col.
+    log_odds_color: str = "green"
+    log_odds_text_col: str = "text_position"
+
+    def __init__(
+        self,
+        data_col_name: str,
+        target_col_name: Optional[str],
+        target_positive_value: Optional[str] = None,
+        target_negative_value: Optional[str] = None,
+    ) -> None:
+        """Setup basic parameters for plot description.s
 
         Parameters
         ----------
@@ -43,9 +55,28 @@ class BasePlotDescription:
             Name of data column.
         target_col_name: str or None
             Name of target column.
+        target_positive_value : str or None
+            Positive value of target column, if target column is set.
+        target_negative_value : str or None
+            Negative value of target column, if target column is set.
         """
         self.data_col_name = data_col_name
         self.target_col_name = target_col_name
+        if target_col_name is not None:
+            if target_positive_value is None:
+                raise ValueError(
+                    "Positive target value not set, on target column '{}'.".format(
+                        self.target_col_name
+                    )
+                )
+            if target_negative_value is None:
+                raise ValueError(
+                    "Negative target value not set, on target column '{}'.".format(
+                        self.target_col_name
+                    )
+                )
+            self.p_target_value = target_positive_value
+            self.n_target_value = target_negative_value
 
     @property
     def distribution(self) -> pd.DataFrame:
@@ -75,7 +106,7 @@ class BasePlotDescription:
         return self.__log_odds
 
     def __generate_log_odds(self):
-        """Generates log2odds preprocessed DataFrame based on distribution."""
+        """Generates log2 odds preprocessed DataFrame based on distribution."""
         log_odds = pd.pivot_table(
             self.distribution,
             values=self.count_col_name,
@@ -84,11 +115,20 @@ class BasePlotDescription:
             sort=False,
         ).reset_index()
         log_odds.columns.name = ""
-        # TODO replace '0' and '1'
-        log_odds["log_odds"] = round(np.log2(log_odds["1"] / log_odds["0"]), 2)
+        # counts log2 odds
+        log_odds["log_odds"] = round(
+            np.log2(log_odds[self.p_target_value] / log_odds[self.n_target_value]),
+            2,
+        )
         # replace all special values with 0
         log_odds.fillna(0, inplace=True)
         log_odds.replace([np.inf, -np.inf], 0, inplace=True)
+
+        # add text position for log2odds
+        log_odds[self.log_odds_text_col] = "left"
+        log_odds.loc[
+            log_odds[self.log_odds_col_name] < 0, self.log_odds_text_col
+        ] = "right"
         self.__log_odds = log_odds
 
     def _set_distribution(self, distribution: pd.DataFrame) -> None:
