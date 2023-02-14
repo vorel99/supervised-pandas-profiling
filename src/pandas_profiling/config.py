@@ -159,6 +159,14 @@ class CatFrequencyPlot(BaseModel):
     colors: Optional[List[str]] = None
 
 
+class PlotColors(BaseModel):
+    """Define colors for variables plots."""
+
+    positive_color: str = "#444"
+    negative_color: str = "#F44"
+    log_odds_color: str = "#666"
+
+
 class Plot(BaseModel):
     missing: MissingPlot = MissingPlot()
     image_format: ImageType = ImageType.svg
@@ -167,6 +175,7 @@ class Plot(BaseModel):
     histogram: Histogram = Histogram()
     scatter_threshold: int = 1000
     cat_freq: CatFrequencyPlot = CatFrequencyPlot()
+    plot_colors: PlotColors = PlotColors()
 
 
 class Theme(Enum):
