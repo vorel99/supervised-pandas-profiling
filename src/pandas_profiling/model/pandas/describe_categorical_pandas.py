@@ -4,6 +4,7 @@ from collections import Counter
 from typing import List, Optional, Tuple
 
 import numpy as np
+import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.pandas.description_plot_pandas import (
     CategoricalPlotDescriptionPandas,
@@ -16,8 +17,6 @@ from pandas_profiling.model.summary_algorithms import (
     series_handle_nulls,
     series_hashable,
 )
-
-import pandas as pd
 
 
 def get_character_counts_vc(vc: pd.Series) -> pd.Series:
@@ -257,7 +256,10 @@ def pandas_describe_categorical_1d(
         summary.update(word_summary_vc(value_counts, config.vars.cat.stop_words))
 
     summary["plot_description"] = CategoricalPlotDescriptionPandas(
-        series, target_col, config.vars.cat.n_obs
+        series,
+        target_col,
+        config.positive_target_value,
+        config.vars.cat.n_obs,
     )
 
     return config, series, summary, target_col
