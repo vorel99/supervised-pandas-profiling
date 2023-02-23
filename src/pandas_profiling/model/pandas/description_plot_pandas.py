@@ -110,29 +110,7 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
         super().__init__(data_col, target_col, positive_target_value)
 
         self._max_cat_to_plot = max_cat_to_plot
-
-        # we have 2 different columns
-        if self._target_col is not None and self.data_col_name != self.target_col_name:
-            # join columns by id
-            data = (
-                self._data_col.to_frame()
-                .join(self._target_col, how="inner")
-                .astype(str)
-            )
-            distribution = data.groupby(data.columns.to_list()).size().reset_index()
-            distribution.rename(columns={0: self.count_col_name}, inplace=True)
-        else:
-            distribution = data_col.groupby(data_col).size()
-            distribution = distribution.rename(index=self.count_col_name).reset_index()
-
-        # sorts plot
-        distribution.sort_values(by=self.count_col_name, inplace=True, ascending=False)
-
-        # limit the count of plotted categories
-        distribution = self._limit_count(distribution)
-
-        # add column for label position
-        distribution = self._add_labels_location(distribution)
+        distribution = self._get_distribution()
         self._set_distribution(distribution)
 
     def _limit_count(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -145,10 +123,7 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
         if top_n_classes.size < df[self.data_col_name].nunique():
             # select rows, that are not in top n classes and group them
             other = df[~df[self.data_col_name].isin(top_n_classes)]
-            if (
-                self.target_col_name is not None
-                and self.data_col_name != self.target_col_name
-            ):
+            if self.is_supervised():
                 other = (
                     other.groupby(self.target_col_name)[self.count_col_name]
                     .sum()
@@ -168,6 +143,41 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas):
             # merge top n categories and other
             df = pd.concat([df, other])
         return df
+
+    def _get_distribution(self) -> pd.DataFrame:
+        """Generate grouped distribution DataFrame.
+        Limit count of showed categories. Other are merged and showed as last.
+
+        Returns
+        -------
+        distribution : pd.DataFrame
+            Sorted DataFrame with aggregated categories.
+        """
+        # we have 2 different columns
+        if self.is_supervised():
+            # join columns by id
+            data = (
+                self._data_col.to_frame()
+                .join(self._target_col, how="inner")
+                .astype(str)
+            )
+            distribution = data.groupby(data.columns.to_list()).size()
+            # add zero values
+            distribution = distribution.unstack(fill_value=0).stack().reset_index()
+            distribution.rename(columns={0: self.count_col_name}, inplace=True)
+        else:
+            distribution = self._data_col.groupby(self._data_col).size()
+            distribution = distribution.reset_index(name=self.count_col_name)
+
+        # sorts plot
+        distribution.sort_values(by=self.count_col_name, inplace=True, ascending=False)
+
+        # limit the count of categories
+        distribution = self._limit_count(distribution)
+
+        # add column for label position
+        distribution = self._add_labels_location(distribution)
+        return distribution
 
     def _add_labels_location(self, df: pd.DataFrame):
         col_name = "labels_location"
@@ -196,28 +206,71 @@ class NumericPlotDescriptionPandas(PlotDescriptionPandas):
 
     def _get_distribution(self) -> pd.DataFrame:
         """Cut continuous variable to bins.
+        For supervised, data_col set to range '[10, 20]'.
+        For unsupervised, data_col set to mid of range '15'.
 
         Returns
         -------
         data : pd.DataFrame
             Binned and grouped data.
         """
-        # join columns by id
-        data = pd.DataFrame()
-        # add bins (10, 20]
-        data[self.data_col_name] = pd.cut(self._data_col, bins=self._bars, precision=0)
-        data[self.count_col_name] = 0
-        # supervised
-        if self._target_col is not None:
-            data = data.join(self._target_col, how="inner")
-            data[self.data_col_name] = data[self.data_col_name].astype(str)
+
+        def get_supervised(data: pd.DataFrame) -> pd.DataFrame:
+            """Group supervised numeric value.
+
+            Parameters
+            ----------
+            data : pd.DataFrame
+                DataFrame with binned data_col and count_col with zeroes.
+
+            Returns
+            -------
+            data : pd.DataFrame
+                Grouped DataFrame by target_col and data_col.
+                Column count_col contains counts for every target data combination.
+                Even zero values.
+            """
+            data = data.join(self._target_col, how="left")
             sub = [self.data_col_name, self.target_col_name]
-        # unsupervised
-        else:
+            # aggregate bins
+            data_series = data.groupby(sub)[self.count_col_name].size()
+            # add zero values
+            data = data_series.unstack(fill_value=0).stack().reset_index()
+            data.rename(columns={0: self.count_col_name}, inplace=True)
+            data[self.data_col_name] = data[self.data_col_name].astype(str)
+            return data
+
+        def get_unsupervised(data: pd.DataFrame) -> pd.DataFrame:
             # replace bins with middle value (10, 20] -> 15
             data[self.data_col_name] = data[self.data_col_name].apply(lambda x: x.mid)
             data[self.data_col_name] = data[self.data_col_name].astype(float)
             sub = [self.data_col_name]
-        # aggregate bins
-        data = data.groupby(sub)[self.count_col_name].count().reset_index()
+            # aggregate bins
+            data_series = data.groupby(sub)[self.count_col_name].size()
+            data = data_series.reset_index(name=self.count_col_name)
+            return data
+
+        # join columns by id
+        data = pd.DataFrame()
+        # set precision for col
+        # range > 100 -> precision = 1
+        # range < 100 -> precision = 2
+        # range < 10 -> precision = 3
+        range = self._data_col.max() - self._data_col.min()
+        if range < 10:
+            precision = 3
+        elif range < 100:
+            precision = 2
+        else:
+            precision = 1
+        # add bins to data_col
+        data[self.data_col_name] = pd.cut(
+            self._data_col, bins=self._bars, precision=precision
+        )
+        data[self.count_col_name] = 0
+        # group data
+        if self.is_supervised():
+            data = get_supervised(data)
+        else:
+            data = get_unsupervised(data)
         return data
