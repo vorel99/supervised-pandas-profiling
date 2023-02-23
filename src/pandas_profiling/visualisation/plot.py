@@ -37,6 +37,20 @@ I'm able co color bars, or the text, but not both at once.
 """
 
 
+def supervised_plot(func):
+    def inner(config: Settings, desc_plot: BasePlotDescription, mini: bool):
+        if not desc_plot.is_supervised():
+            raise ValueError(
+                "Plot description is not supervised. '{}'".format(
+                    desc_plot.data_col_name
+                )
+            )
+        return func(config, desc_plot, mini)
+
+    return inner
+
+
+@supervised_plot
 def _plot_cat_log_odds(
     config: Settings, desc_plot: BasePlotDescription, mini: bool
 ) -> Plotter:
@@ -136,6 +150,7 @@ def _plot_cat_dist(
     return p.plot(pyplot=True)
 
 
+@supervised_plot
 def _plot_hist_log_odds(
     config: Settings, desc_plot: BasePlotDescription, mini: bool
 ) -> Plotter:
@@ -214,6 +229,7 @@ def _plot_hist_dist(
     # unsupervised
     else:
         p = p.add(so.Bars(alpha=1))
+        p = p.scale(x=so.Continuous().tick())
 
     p = p.scale(
         y=so.Continuous().tick(count=0),
@@ -354,7 +370,10 @@ def plot_hist_dist(
     config: Settings, plot_description: BasePlotDescription, mini: bool = False
 ) -> str:
     """Plots histogram for continuos data"""
-    plot = _plot_hist_dist(config, plot_description, mini)
+    if plot_description.is_supervised():
+        plot = _plot_cat_dist(config, plot_description, mini)
+    else:
+        plot = _plot_hist_dist(config, plot_description, mini)
     return plot_360_n0sc0pe(config)
 
 
@@ -363,7 +382,10 @@ def plot_hist_log_odds(
     config: Settings, plot_description: BasePlotDescription, mini: bool = False
 ) -> str:
     """Plots continuous log odds graph"""
-    plot = _plot_hist_log_odds(config, plot_description, mini)
+    if plot_description.is_supervised():
+        plot = _plot_cat_log_odds(config, plot_description, mini)
+    else:
+        plot = _plot_hist_log_odds(config, plot_description, mini)
     return plot_360_n0sc0pe(config)
 
 

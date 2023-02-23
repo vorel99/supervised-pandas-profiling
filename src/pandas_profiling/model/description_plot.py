@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
+
 import pandas as pd
 
 
@@ -105,6 +106,15 @@ class BasePlotDescription:
         """
         return self.__log_odds
 
+    def is_supervised(self) -> bool:
+        """Return, if plot should be plotted as supervised, or not.
+        Supervised for all values, with target col.
+        Unsupervised when target_col is None or if data_col == target_col"""
+        return (
+            self.target_col_name is not None
+            and self.target_col_name != self.data_col_name
+        )
+
     def __generate_log_odds(self):
         """Generates log2 odds preprocessed DataFrame based on distribution."""
         log_odds = pd.pivot_table(
@@ -132,7 +142,9 @@ class BasePlotDescription:
         self.__log_odds = log_odds
 
     def _set_distribution(self, distribution: pd.DataFrame) -> None:
-        """Validate and set distribution DataFrame."""
+        """Validate and set distribution DataFrame.
+        - check if there are all needed columns
+        """
         if not isinstance(distribution, pd.DataFrame):
             raise ValueError("Preprocessed plot must be pd.DataFrame instance.")
         self.__check_columns(distribution)
@@ -153,4 +165,6 @@ class BasePlotDescription:
                 "Target column '{}' not in DataFrame.".format(self.target_col_name)
             )
         if self.count_col_name not in df:
-            raise ValueError("Count column not in DataFrame.")
+            raise ValueError(
+                "Count column not in DataFrame. '{}'".format(self.data_col_name)
+            )
