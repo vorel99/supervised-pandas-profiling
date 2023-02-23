@@ -164,15 +164,16 @@ def describe(
     analysis = BaseAnalysis(config.title, date_start, date_end)
 
     description = BaseDescription(
-        analysis,
-        table_stats,
-        series_description,
-        scatter_matrix,
-        correlations,
-        missing,
-        alerts,
-        package,
-        samples,
-        duplicates,
+        analysis=analysis,
+        table=table_stats,
+        target=config.target_col,
+        _variables=series_description,
+        scatter=scatter_matrix,
+        correlations=correlations,
+        missing=missing,
+        alerts=alerts,
+        package=package,
+        sample=samples,
+        duplicates=duplicates,
     )
     return description

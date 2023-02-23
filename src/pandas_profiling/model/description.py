@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -34,7 +34,7 @@ class BaseAnalysis:
 
 @dataclass
 class BaseDescription:
-    """Description of dataframe.
+    """Description of DataFrame.
 
     Attributes
     ----------
@@ -64,7 +64,8 @@ class BaseDescription:
 
     analysis: BaseAnalysis
     table: Any
-    variables: Dict[str, Any]
+    target: Optional[str]
+    _variables: Dict[str, Any]
     scatter: Any
     correlations: Any
     missing: Any
@@ -72,3 +73,17 @@ class BaseDescription:
     package: Any
     sample: Any
     duplicates: Any
+
+    @property
+    def target_description(self) -> Dict[str, Any]:
+        """Return description of target column."""
+        if self.target is not None and self.target in self._variables.keys():
+            return self._variables[self.target]
+
+    @property
+    def variables(self) -> Dict[str, Any]:
+        vars = self._variables
+        if self.target is not None and self.target in self._variables.keys():
+            del vars[self.target]
+            return vars
+        return vars
