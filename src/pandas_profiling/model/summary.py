@@ -17,7 +17,27 @@ def describe_1d(
     summarizer: BaseSummarizer,
     typeset: VisionsTypeset,
     target_description: Optional[TargetDescription],
-) -> dict:
+) -> Dict[str, Any]:
+    """Describe one data column.
+
+    Parameters
+    ----------
+    config : Settings
+        User configuration.
+    series : Any
+        One column of data.
+    summarizer : BaseSummarizer
+        Summarizer with switch for all types of column.
+    typeset: VisionsTypeset
+        Data type inferrer.
+    target_description : Optional[TargetDescription]
+        Description of target column, if target defined. None if not.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Description dictionary of series from parameters.
+    """
     raise NotImplementedError()
 
 
@@ -28,5 +48,23 @@ def get_series_descriptions(
     summarizer: BaseSummarizer,
     typeset: VisionsTypeset,
     pbar: tqdm,
+    target_description: Optional[TargetDescription],
 ) -> Dict[str, Any]:
+    """Create description for all columns.
+
+    Parameters
+    ----------
+    config : Settings
+        User configuration.
+    df : Any
+        Data
+    summarizer : BaseSummarizer
+        Summarizer with switch for all types of column.
+    typeset : VisionsTypeset
+        Data type inferrer.
+    pbar : tqdm
+
+    target_description: Optional[TargetDescription]
+        Description of target column, if target defined. None if not.
+    """
     raise NotImplementedError()
