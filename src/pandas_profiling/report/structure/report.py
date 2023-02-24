@@ -386,7 +386,11 @@ def get_report_structure(config: Settings, summary: BaseDescription) -> Root:
             target_description = summary.target_description
             section_items.append(
                 render_variable(
-                    config, summary, summary.target, target_description, name="Target"
+                    config,
+                    summary,
+                    summary.target.name,
+                    target_description,
+                    name="Target",
                 )
             )
 
