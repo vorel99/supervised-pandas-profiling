@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from pandas_profiling.model.description_target import TargetDescription
+
 
 @dataclass
 class BaseAnalysis:
@@ -64,8 +66,8 @@ class BaseDescription:
 
     analysis: BaseAnalysis
     table: Any
-    target: Optional[str]
-    _variables: Dict[str, Any]
+    target: Optional[TargetDescription]
+    variables: Dict[str, Any]
     scatter: Any
     correlations: Any
     missing: Any
@@ -77,13 +79,5 @@ class BaseDescription:
     @property
     def target_description(self) -> Dict[str, Any]:
         """Return description of target column."""
-        if self.target is not None and self.target in self._variables.keys():
-            return self._variables[self.target]
-
-    @property
-    def variables(self) -> Dict[str, Any]:
-        vars = self._variables
-        if self.target is not None and self.target in self._variables.keys():
-            del vars[self.target]
-            return vars
-        return vars
+        if self.target:
+            return self.target.description

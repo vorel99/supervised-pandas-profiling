@@ -2,7 +2,6 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.alerts import get_alerts
 from pandas_profiling.model.correlations import (
@@ -11,6 +10,7 @@ from pandas_profiling.model.correlations import (
 )
 from pandas_profiling.model.dataframe import check_dataframe, preprocess
 from pandas_profiling.model.description import BaseAnalysis, BaseDescription
+from pandas_profiling.model.description_target import TargetDescription, describe_target
 from pandas_profiling.model.duplicates import get_duplicates
 from pandas_profiling.model.missing import get_missing_active, get_missing_diagram
 from pandas_profiling.model.pairwise import get_scatter_plot, get_scatter_tasks
@@ -22,6 +22,8 @@ from pandas_profiling.utils.progress_bar import progress
 from pandas_profiling.version import __version__
 from tqdm.auto import tqdm
 from visions import VisionsTypeset
+
+import pandas as pd
 
 
 def describe(
@@ -65,6 +67,13 @@ def describe(
         position=0,
     ) as pbar:
         date_start = datetime.utcnow()
+
+        # target description
+        target_description: Optional[TargetDescription]
+        if config.target.col_name is not None:
+            target_description = describe_target(config, df)
+        else:
+            target_description = None
 
         # Variable-specific
         pbar.total += len(df.columns)
@@ -161,13 +170,20 @@ def describe(
 
         date_end = datetime.utcnow()
 
+    # update target description and remove target from variables
+    if target_description:
+        target_description.description.update(
+            series_description[target_description.name]
+        )
+        del series_description[target_description.name]
+
     analysis = BaseAnalysis(config.title, date_start, date_end)
 
     description = BaseDescription(
         analysis=analysis,
         table=table_stats,
-        target=config.target_col,
-        _variables=series_description,
+        target=target_description,
+        variables=series_description,
         scatter=scatter_matrix,
         correlations=correlations,
         missing=missing,
