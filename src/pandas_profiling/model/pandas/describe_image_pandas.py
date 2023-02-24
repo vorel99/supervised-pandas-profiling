@@ -246,7 +246,7 @@ def pandas_describe_image_1d(
     config: Settings,
     series: pd.Series,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
     if series.hasnans:
         raise ValueError("May not contain NaNs")

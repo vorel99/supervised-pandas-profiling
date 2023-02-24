@@ -15,7 +15,7 @@ def pandas_describe_supported(
     config: Settings,
     series: pd.Series,
     series_description: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
     """Describe a supported series.
 

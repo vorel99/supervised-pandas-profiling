@@ -75,7 +75,7 @@ def pandas_describe_numeric_1d(
     config: Settings,
     series: pd.Series,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
     """Describe a numeric series.
 
@@ -166,16 +166,14 @@ def pandas_describe_numeric_1d(
         )
     )
 
-    # TODO connect to target description
     if target_description is None:
         plot_bins = config.plot.histogram.bins
     else:
         plot_bins = config.plot.histogram.bins_supervised
-    # stats["plot_description"] = NumericPlotDescriptionPandas(
-    #     series,
-    #     target_description.series,
-    #     config.target.positive_values,
-    #     plot_bins,
-    # )
+    stats["plot_description"] = NumericPlotDescriptionPandas(
+        series,
+        target_description,
+        plot_bins,
+    )
 
     return config, series, stats, target_description

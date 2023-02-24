@@ -301,11 +301,6 @@ class Settings(BaseSettings):
     variables: Variables = Variables()
     infer_dtypes: bool = True
 
-    # TODO remove
-    # column name for supervised profiling
-    target_col: Optional[str] = None
-    positive_target_value: Optional[str] = None
-
     # Show the description at each variable (in addition to the overview tab)
     show_variable_description: bool = True
 

@@ -15,7 +15,7 @@ def pandas_describe_boolean_1d(
     config: Settings,
     series: pd.Series,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
     """Describe a boolean series.
 

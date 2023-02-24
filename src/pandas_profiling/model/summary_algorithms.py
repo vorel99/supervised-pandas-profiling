@@ -68,7 +68,7 @@ def series_hashable(
         config: Settings,
         series: pd.Series,
         summary: dict,
-        target_description: Optional[TargetDescription],
+        target_description: Optional[TargetDescription] = None,
     ) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
         if not summary["hashable"]:
             return config, series, summary, target_description
@@ -119,7 +119,7 @@ def describe_counts(
     config: Settings,
     series: Any,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, Any, dict, Optional[TargetDescription]]:
     raise NotImplementedError()
 
@@ -129,7 +129,7 @@ def describe_supported(
     config: Settings,
     series: Any,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, Any, dict, Optional[TargetDescription]]:
     raise NotImplementedError()
 
@@ -139,7 +139,7 @@ def describe_generic(
     config: Settings,
     series: Any,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, Any, dict, Optional[TargetDescription]]:
     raise NotImplementedError()
 

@@ -210,7 +210,7 @@ def pandas_describe_categorical_1d(
     config: Settings,
     series: pd.Series,
     summary: dict,
-    target_description: Optional[TargetDescription],
+    target_description: Optional[TargetDescription] = None,
 ) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
     """Describe a categorical series.
 
@@ -256,12 +256,10 @@ def pandas_describe_categorical_1d(
     if config.vars.cat.words:
         summary.update(word_summary_vc(value_counts, config.vars.cat.stop_words))
 
-    # TODO change (connect to target description)
-    # summary["plot_description"] = CategoricalPlotDescriptionPandas(
-    #     series,
-    #     target_description.series,
-    #     config.target.positive_values,
-    #     config.vars.cat.n_obs,
-    # )
+    summary["plot_description"] = CategoricalPlotDescriptionPandas(
+        series,
+        target_description,
+        config.vars.cat.n_obs,
+    )
 
     return config, series, summary, target_description
