@@ -71,15 +71,11 @@ def render_variable(
     dataframe_summary: BaseDescription,
     idx: str,
     summary: Dict[str, Any],
-    name: Optional[str] = None,
 ):
     """Create renderable item for one variable."""
     descriptions = config.variables.descriptions
     show_description = config.show_variable_description
     reject_variables = config.reject_variables
-
-    if name is None:
-        name = idx
 
     render_map = get_render_map()
 
@@ -169,7 +165,7 @@ def render_variable(
         template_variables["top"],
         bottom=bottom,
         anchor_id=template_variables["varid"],
-        name=name,
+        name=idx,
         ignore=ignore,
     )
     return var
@@ -385,12 +381,18 @@ def get_report_structure(config: Settings, summary: BaseDescription) -> Root:
         if summary.target:
             target_description = summary.target_description
             section_items.append(
-                render_variable(
-                    config,
-                    summary,
-                    summary.target.name,
-                    target_description,
+                Container(
+                    [
+                        render_variable(
+                            config,
+                            summary,
+                            summary.target.name,
+                            target_description,
+                        )
+                    ],
                     name="Target",
+                    sequence_type="accordion",
+                    anchor_id="target",
                 )
             )
 
