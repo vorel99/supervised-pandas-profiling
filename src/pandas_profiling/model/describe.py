@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.alerts import get_alerts
 from pandas_profiling.model.correlations import (
@@ -22,8 +23,6 @@ from pandas_profiling.utils.progress_bar import progress
 from pandas_profiling.version import __version__
 from tqdm.auto import tqdm
 from visions import VisionsTypeset
-
-import pandas as pd
 
 
 def describe(
@@ -71,14 +70,14 @@ def describe(
         # target description
         target_description: Optional[TargetDescription]
         if config.target.col_name is not None:
-            target_description = describe_target(config, df)
+            target_description = describe_target(config.target, df)
         else:
             target_description = None
 
         # Variable-specific
         pbar.total += len(df.columns)
         series_description = get_series_descriptions(
-            config, df, summarizer, typeset, pbar
+            config, df, summarizer, typeset, pbar, target_description
         )
 
         pbar.set_postfix_str("Get variable types")

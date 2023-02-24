@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
 from multimethod import multimethod
-from pandas_profiling.config import Settings
+from pandas_profiling.config import Target
 
 
 @dataclass
@@ -12,7 +12,7 @@ class TargetDescription(metaclass=ABCMeta):
 
     series: Any
     series_binary: Any
-    config: Settings
+    config: Target
     name: str
     description: Dict[str, Any]
     positive_values: List[str]
@@ -20,12 +20,12 @@ class TargetDescription(metaclass=ABCMeta):
 
     def __init__(
         self,
-        config: Settings,
+        target_config: Target,
         series: Any,
     ) -> None:
         self.series = series
-        self.config = config
-        self.name = config.target.col_name
+        self.config = target_config
+        self.name = target_config.col_name
         self.description = {}
         self.positive_values, self.negative_values = self._infer_target_values()
         self.series_binary = self._get_bin_target()
@@ -67,7 +67,7 @@ class TargetDescription(metaclass=ABCMeta):
 
 @multimethod
 def describe_target(
-    config: Settings,
+    config: Target,
     data_frame: Any,
 ) -> TargetDescription:
     """Generate target description."""

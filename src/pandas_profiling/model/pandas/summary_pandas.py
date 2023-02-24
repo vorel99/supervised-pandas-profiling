@@ -5,6 +5,7 @@ import multiprocessing.pool
 from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
+import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.pandas.description_target_pandas import (
@@ -15,8 +16,6 @@ from pandas_profiling.model.summary import describe_1d, get_series_descriptions
 from pandas_profiling.utils.dataframe import sort_column_names
 from tqdm import tqdm
 from visions import VisionsTypeset
-
-import pandas as pd
 
 
 @describe_1d.register
@@ -64,6 +63,7 @@ def pandas_get_series_descriptions(
     summarizer: BaseSummarizer,
     typeset: VisionsTypeset,
     pbar: tqdm,
+    target_description: Optional[TargetDescription],
 ) -> Dict[str, Any]:
     def multiprocess_1d(args: Tuple[str, pd.Series]) -> Tuple[str, dict]:
         """Wrapper to process series in parallel.
@@ -81,11 +81,6 @@ def pandas_get_series_descriptions(
         )
 
     pool_size = config.pool_size
-
-    if config.target.col_name is not None:
-        target_description = TargetDescriptionPandas(config, df[config.target.col_name])
-    else:
-        target_description = None
 
     # Multiprocessing of Describe 1D for each column
     if pool_size <= 0:
