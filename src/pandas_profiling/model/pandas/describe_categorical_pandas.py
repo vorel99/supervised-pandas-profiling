@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from pandas_profiling.config import Settings
+from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.pandas.description_plot_pandas import (
     CategoricalPlotDescriptionPandas,
 )
@@ -209,8 +210,8 @@ def pandas_describe_categorical_1d(
     config: Settings,
     series: pd.Series,
     summary: dict,
-    target_col: Optional[pd.Series] = None,
-) -> Tuple[Settings, pd.Series, dict, Optional[pd.Series]]:
+    target_description: Optional[TargetDescription],
+) -> Tuple[Settings, pd.Series, dict, Optional[TargetDescription]]:
     """Describe a categorical series.
 
     Args:
@@ -255,11 +256,12 @@ def pandas_describe_categorical_1d(
     if config.vars.cat.words:
         summary.update(word_summary_vc(value_counts, config.vars.cat.stop_words))
 
-    summary["plot_description"] = CategoricalPlotDescriptionPandas(
-        series,
-        target_col,
-        config.positive_target_value,
-        config.vars.cat.n_obs,
-    )
+    # TODO change (connect to target description)
+    # summary["plot_description"] = CategoricalPlotDescriptionPandas(
+    #     series,
+    #     target_description.series,
+    #     config.target.positive_values,
+    #     config.vars.cat.n_obs,
+    # )
 
-    return config, series, summary, target_col
+    return config, series, summary, target_description
