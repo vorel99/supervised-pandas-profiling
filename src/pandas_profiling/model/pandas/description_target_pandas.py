@@ -28,8 +28,11 @@ class TargetDescriptionPandas(TargetDescription):
         else:
             positive_vals = []
             for value in unique_vals:
-                if value in self.config.inferred_positive_values:
+                if str(value).lower() in self.config.inferred_positive_values:
                     positive_vals.append(value)
+
+            if len(positive_vals) == 0:
+                positive_vals.append(unique_vals[0])
 
         negative_vals = np.setdiff1d(unique_vals, positive_vals)
         return positive_vals, list(negative_vals)
@@ -45,6 +48,22 @@ class TargetDescriptionPandas(TargetDescription):
         _desc["target_mean"] = self.series_binary.mean()
 
         return _desc
+
+    @property
+    def n_positive_vals(self) -> int:
+        return self.series[self.series.isin(self.positive_values)].count()
+
+    @property
+    def p_positive_vals(self) -> float:
+        return self.n_positive_vals / self.series.size
+
+    @property
+    def n_negative_vals(self) -> int:
+        return self.series[self.series.isin(self.negative_values)].count()
+
+    @property
+    def p_negative_vals(self) -> float:
+        return self.n_negative_vals / self.series.size
 
 
 @describe_target.register

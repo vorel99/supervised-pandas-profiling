@@ -54,12 +54,41 @@ class TargetDescription(metaclass=ABCMeta):
         Get target mean."""
         pass
 
+    @property
+    @abstractmethod
+    def n_positive_vals(self) -> int:
+        """Count of positive values in series."""
+        pass
+
+    @property
+    @abstractmethod
+    def p_positive_vals(self) -> float:
+        """Percentage of positive values in series."""
+        pass
+
+    @property
+    @abstractmethod
+    def n_negative_vals(self) -> int:
+        """Count of negative values in series."""
+        pass
+
+    @property
+    @abstractmethod
+    def p_negative_vals(self) -> float:
+        """Percentage of negative values in series."""
+        pass
+
     def _update_description_base(self) -> None:
         """Update description.
         Add positive and negative values."""
         _desc = {}
+        _desc["target"] = True
         _desc["positive_vals"] = self.positive_values
+        _desc["n_positive_vals"] = self.n_positive_vals
+        _desc["p_positive_vals"] = self.p_positive_vals
         _desc["negative_vals"] = self.negative_values
+        _desc["n_negative_vals"] = self.n_negative_vals
+        _desc["p_negative_vals"] = self.p_negative_vals
         _desc.update(self._get_advanced_description())
 
         self.description.update(_desc)
