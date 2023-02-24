@@ -110,6 +110,14 @@ class TimeseriesVars(BaseModel):
     pacf_acf_lag: int = 100
 
 
+class Target(BaseModel):
+    col_name: Optional[str] = None
+    # positive values set by user
+    positive_values: Optional[List[str]] = None
+    # positive values for inferring
+    inferred_positive_values: List[str] = ["true", "1"]
+
+
 class Univariate(BaseModel):
     num: NumVars = NumVars()
     str: StrVars = StrVars()
@@ -293,6 +301,7 @@ class Settings(BaseSettings):
     variables: Variables = Variables()
     infer_dtypes: bool = True
 
+    # TODO remove
     # column name for supervised profiling
     target_col: Optional[str] = None
     positive_target_value: Optional[str] = None
@@ -305,6 +314,9 @@ class Settings(BaseSettings):
 
     # Show the progress bar
     progress_bar: bool = True
+
+    # target description
+    target: Target = Target()
 
     # Per variable type description settings
     vars: Univariate = Univariate()
