@@ -1,5 +1,5 @@
 """Generate the report."""
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import pandas as pd
 from pandas_profiling.config import Settings
@@ -71,12 +71,15 @@ def render_variable(
     dataframe_summary: BaseDescription,
     idx: str,
     summary: Dict[str, Any],
-    target: bool = False,
+    name: Optional[str] = None,
 ):
     """Create renderable item for one variable."""
     descriptions = config.variables.descriptions
     show_description = config.show_variable_description
     reject_variables = config.reject_variables
+
+    if name is None:
+        name = idx
 
     render_map = get_render_map()
 
@@ -166,7 +169,7 @@ def render_variable(
         template_variables["top"],
         bottom=bottom,
         anchor_id=template_variables["varid"],
-        name=idx if not target else "Target",
+        name=name,
         ignore=ignore,
     )
     return var
@@ -381,18 +384,9 @@ def get_report_structure(config: Settings, summary: BaseDescription) -> Root:
         # target
         if summary.target:
             target_description = summary.target_description
-            # target_item = Container(
-            #     items=[
-            #         render_variable(config, summary, summary.target, target_description)
-            #     ],
-            #     sequence_type="tabs",
-            #     name="Target",
-            #     anchor_id="target",
-            # )
-
             section_items.append(
                 render_variable(
-                    config, summary, summary.target, target_description, target=True
+                    config, summary, summary.target, target_description, name="Target"
                 )
             )
 
