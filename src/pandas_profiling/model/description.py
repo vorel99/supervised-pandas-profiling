@@ -75,9 +75,3 @@ class BaseDescription:
     package: Any
     sample: Any
     duplicates: Any
-
-    @property
-    def target_description(self) -> Dict[str, Any]:
-        """Return description of target column."""
-        if self.target:
-            return self.target.description

@@ -71,8 +71,25 @@ def render_variable(
     dataframe_summary: BaseDescription,
     idx: str,
     summary: Dict[str, Any],
-):
-    """Create renderable item for one variable."""
+) -> Renderable:
+    """Create renderable item for one variable.
+
+    Parameters
+    ----------
+    config : Settings
+        Config of report.
+    dataframe_summary : BaseDescription
+        Description of whole DataFrame.
+    idx : str
+        Name of variable (column).
+    summary : Dict[str, Any]
+        Summary of variable (column).
+
+    Returns
+    -------
+    Renderable
+        Renderable item of variable.
+    """
     descriptions = config.variables.descriptions
     show_description = config.show_variable_description
     reject_variables = config.reject_variables
@@ -379,7 +396,7 @@ def get_report_structure(config: Settings, summary: BaseDescription) -> Root:
         ]
         # target
         if summary.target:
-            target_description = summary.target_description
+            target_description = summary.target.description
             section_items.append(
                 Container(
                     [
