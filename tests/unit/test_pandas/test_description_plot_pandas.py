@@ -3,10 +3,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
+from pandas_profiling.config import Target
 from pandas_profiling.model.pandas.description_plot_pandas import (
     BasePlotDescription,
     CategoricalPlotDescriptionPandas,
     NumericPlotDescriptionPandas,
+)
+from pandas_profiling.model.pandas.description_target_pandas import (
+    TargetDescriptionPandas,
 )
 
 
@@ -55,8 +59,11 @@ def compare_distribution_supervised(
     ],
 )
 def test_categorical_plot_description(test_data, expected_distribution):
+    target_setting = Target()
+    target_setting.col_name = "target"
     df = pd.DataFrame.from_records(test_data, columns=["data", "target"])
-    description = CategoricalPlotDescriptionPandas(df["data"], df["target"], "1", 5)
+    target_description = TargetDescriptionPandas(target_setting, df["target"])
+    description = CategoricalPlotDescriptionPandas(df["data"], target_description, 5)
     expected = pd.DataFrame(expected_distribution, columns=["data", "target", "count"])
     compare_distribution_supervised(description, expected)
 
@@ -80,7 +87,10 @@ def test_categorical_plot_description(test_data, expected_distribution):
     ],
 )
 def test_numeric_plot_description(test_data, expected_distribution):
+    target_setting = Target()
+    target_setting.col_name = "target"
     df = pd.DataFrame.from_records(test_data, columns=["data", "target"])
-    description = NumericPlotDescriptionPandas(df["data"], df["target"], "1", 2)
+    target_description = TargetDescriptionPandas(target_setting, df["target"])
+    description = NumericPlotDescriptionPandas(df["data"], target_description, 2)
     expected = pd.DataFrame(expected_distribution, columns=["data", "target", "count"])
     compare_distribution_supervised(description, expected)
