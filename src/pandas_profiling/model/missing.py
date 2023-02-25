@@ -1,10 +1,44 @@
 import warnings
+from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
-import pandas as pd
 from multimethod import multimethod
-
 from pandas_profiling.config import Settings
+from pandas_profiling.model.description_target import TargetDescription
+
+import pandas as pd
+
+
+@dataclass
+class MissingDescription(metaclass=ABCMeta):
+    """Description of missing.
+
+    missing_target : Dict[str, pd.DataFrame]
+        Confusion matrixes target x missing for variables with missing values.
+        key : column name
+        value : confusion matrix of missing vs target
+    """
+
+    missing_target: Dict[str, pd.DataFrame]
+
+
+@multimethod
+def get_missing_description(
+    config: Settings, df: Any, target_description: TargetDescription
+) -> MissingDescription:
+    """Describe relationship between missing values in variable and target variable.
+
+    Parameters
+    ----------
+    config : Setting
+        Config of report
+    df : Any
+        Data, we are exploring.
+    target_description : TargetDescription
+        Description of target column.
+    """
+    raise NotImplementedError
 
 
 @multimethod
