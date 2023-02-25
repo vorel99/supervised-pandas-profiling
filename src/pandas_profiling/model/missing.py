@@ -11,6 +11,12 @@ import pandas as pd
 
 
 @dataclass
+class MissingConfMatrix:
+    absolute_counts: pd.DataFrame
+    relative_counts: pd.DataFrame
+
+
+@dataclass
 class MissingDescription(metaclass=ABCMeta):
     """Description of missing.
 
@@ -20,7 +26,7 @@ class MissingDescription(metaclass=ABCMeta):
         value : confusion matrix of missing vs target
     """
 
-    missing_target: Dict[str, pd.DataFrame]
+    missing_target: Dict[str, MissingConfMatrix]
 
 
 @multimethod
