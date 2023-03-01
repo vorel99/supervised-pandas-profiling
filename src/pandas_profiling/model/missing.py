@@ -12,18 +12,26 @@ import pandas as pd
 
 @dataclass
 class MissingConfMatrix:
+    """Class for confusion matrix in absolute and relative numbers.
+
+    Args:
+        absolute_counts (pd.DataFrame): absolute counts of missing.
+        relative_counts (pd.DataFrame): relative counts of missing.
+    """
+
     absolute_counts: pd.DataFrame
     relative_counts: pd.DataFrame
 
 
 @dataclass
 class MissingDescription(metaclass=ABCMeta):
-    """Description of missing.
+    """Description of missing dependency on target.
 
-    missing_target : Dict[str, pd.DataFrame]
-        Confusion matrixes target x missing for variables with missing values.
-        key : column name
-        value : confusion matrix of missing vs target
+    Args:
+        missing_target: Dict[str, MissingConfMatrix]
+            Confusion matrixes target x missing for variables with missing values.
+            key: column name
+            value: confusion matrix of missing vs target
     """
 
     missing_target: Dict[str, MissingConfMatrix]
@@ -35,14 +43,10 @@ def get_missing_description(
 ) -> MissingDescription:
     """Describe relationship between missing values in variable and target variable.
 
-    Parameters
-    ----------
-    config : Setting
-        Config of report
-    df : Any
-        Data, we are exploring.
-    target_description : TargetDescription
-        Description of target column.
+    Args:
+        config (Setting): Config of report
+        df: (Any): Data, we are exploring.
+        target_description (TargetDescription): Description of target column.
     """
     raise NotImplementedError
 
