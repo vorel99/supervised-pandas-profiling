@@ -14,7 +14,8 @@ from pandas_profiling.visualisation.utils import hex_to_rgb, plot_360_n0sc0pe
 
 
 def _plot_conf_matrix(conf_matrix: MissingConfMatrix):
-    sns.heatmap(conf_matrix.relative_counts, annot=True, fmt=".2%", vmin=0, vmax=1)
+    labels = conf_matrix.plot_labels
+    sns.heatmap(conf_matrix.relative_counts, annot=labels, fmt="", vmin=0, vmax=1)
 
 
 def plot_confusion_matrix(config: Settings, conf_matrix: MissingConfMatrix):

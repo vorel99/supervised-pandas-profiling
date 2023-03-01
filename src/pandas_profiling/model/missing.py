@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
+import numpy as np
 from multimethod import multimethod
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
@@ -21,6 +22,17 @@ class MissingConfMatrix:
 
     absolute_counts: pd.DataFrame
     relative_counts: pd.DataFrame
+
+    @property
+    def plot_labels(self) -> list:
+        """Labels for confusion matrix.
+        Contain relative count and absolute count of values."""
+        flat_abs = self.absolute_counts.values.flatten()
+        flat_rel = self.relative_counts.values.flatten()
+        labels = []
+        for abs, rel in zip(flat_abs, flat_rel):
+            labels.append("{0:.2%}\n{1}".format(rel, abs))
+        return np.asarray(labels).reshape(self.absolute_counts.shape)
 
 
 @dataclass
