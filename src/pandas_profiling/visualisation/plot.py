@@ -322,9 +322,9 @@ def _plot_word_cloud(
 
     word_dict = plot_description.words_counts[plot_description.count_col_name].to_dict()
     wordcloud = WordCloud(
-        background_color="white", random_state=123
+        background_color="white", random_state=123, max_words=100
     ).generate_from_frequencies(word_dict)
-    wordcloud.recolor(color_func=target_color_func, random_state=3)
+    wordcloud.recolor(color_func=target_color_func)
 
     if mini:
         plt.figure(figsize=MINI_FIG_SIZE)
