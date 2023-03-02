@@ -3,9 +3,8 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 import numpy as np
-from pandas_profiling.model.description_target import TargetDescription
-
 import pandas as pd
+from pandas_profiling.model.description_target import TargetDescription
 
 
 @dataclass
@@ -49,7 +48,7 @@ class BasePlotDescription(metaclass=ABCMeta):
 
     @property
     def p_target_value(self) -> Optional[str]:
-        """Get positive target values if target exists.
+        """Positive target values if target exists.
         Positive value is positive from binary target column.
         """
         if self.target_description:
@@ -58,8 +57,8 @@ class BasePlotDescription(metaclass=ABCMeta):
 
     @property
     def n_target_value(self) -> Optional[str]:
-        """Get negative target values if target exists. None otherwise.
-        Negative value is positive from binary target column.
+        """Negative target values if target exists. None otherwise.
+        Negative value is negative from binary target column.
         """
         if self.target_description:
             return self.target_description.bin_negative
