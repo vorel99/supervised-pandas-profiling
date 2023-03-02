@@ -151,7 +151,7 @@ class CategoricPlotDescription(BasePlotDescription):
             self.distribution,
             values=self.count_col_name,
             index=self.data_col_name,
-            columns=self.target_description.name,
+            columns=self.target_col_name,
             sort=False,
         ).reset_index()
         log_odds.columns.name = ""

@@ -45,14 +45,14 @@ class TargetDescription(metaclass=ABCMeta):
         self._update_description_base()
 
     @property
-    def bin_positive(self) -> str:
+    def bin_positive(self) -> int:
         """Positive value for series_binary."""
-        return "1"
+        return 1
 
     @property
-    def bin_negative(self) -> str:
+    def bin_negative(self) -> int:
         """Negative value for series_binary."""
-        return "0"
+        return 0
 
     @abstractmethod
     def _infer_target_values(self) -> Tuple[List[str], List[str]]:

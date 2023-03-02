@@ -412,7 +412,6 @@ class ProfileReport(SerializeReport, ExpectationsReport):
             total=1, desc="Render JSON", disable=not self.config.progress_bar
         ) as pbar:
             description = format_summary(description)
-            print(description.keys())
             description = encode_it(description)
             data = json.dumps(description, indent=4)
             pbar.update()

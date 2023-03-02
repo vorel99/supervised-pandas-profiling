@@ -84,10 +84,8 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas, CategoricPlotDescr
         # we have 2 different columns
         if self.is_supervised():
             # join columns by id
-            data = (
-                self.data_col.to_frame()
-                .join(self.target_description.series_binary, how="inner")
-                .astype(str)
+            data = self.data_col.to_frame().join(
+                self.target_description.series_binary, how="inner"
             )
             distribution = data.groupby(data.columns.to_list()).size()
             # add zero values
@@ -100,7 +98,6 @@ class CategoricalPlotDescriptionPandas(PlotDescriptionPandas, CategoricPlotDescr
         # sorts plot
         distribution.sort_values(by=self.count_col_name, inplace=True, ascending=False)
 
-        print(distribution)
         # limit the count of categories
         distribution = self._limit_count(distribution)
 
