@@ -137,11 +137,11 @@ class CategoricPlotDescription(BasePlotDescription):
         even if count is 0.
 
         Examples:
-        col_name,   target_name,    count
-            1           0               10
-            1           1               5
-            2           0               8
-            2           1               0
+            col_name,       target_name,    count
+            1               0               10
+            1               1               5
+            2               0               8
+            2               1               0
         """
         pass
 
