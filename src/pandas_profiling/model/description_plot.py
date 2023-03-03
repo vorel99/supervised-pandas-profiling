@@ -4,6 +4,7 @@ from typing import Any, List, Optional
 
 import numpy as np
 import pandas as pd
+from pandas_profiling.config import Univariate
 from pandas_profiling.model.description_target import TargetDescription
 
 
@@ -12,6 +13,7 @@ class BasePlotDescription(metaclass=ABCMeta):
     """Base class for plot description.
 
     Attributes:
+        config (Univariate): Setting of variables description.
         data_col_name (str): Name of data column.
         target_col_name (str or None): Name of target column.
         data_col (Any): Column with data values.
@@ -19,12 +21,14 @@ class BasePlotDescription(metaclass=ABCMeta):
             if exists.
     """
 
+    config: Univariate
     data_col_name: str
     data_col: Any
     target_description: Optional[TargetDescription]
 
     def __init__(
         self,
+        config: Univariate,
         data_col_name: str,
         data_col: Any,
         target_description: Optional[TargetDescription],
@@ -36,6 +40,7 @@ class BasePlotDescription(metaclass=ABCMeta):
             data_col (Any): Column with data values.
             target_col_name (str or None): Name of target column.
         """
+        self.config = config
         self.data_col_name = data_col_name
         self.data_col = data_col
         self.target_description = target_description
@@ -87,11 +92,12 @@ class CategoricPlotDescription(BasePlotDescription):
 
     def __init__(
         self,
+        config: Univariate,
         data_col_name: str,
         data_col: Any,
         target_description: Optional[TargetDescription],
     ) -> None:
-        super().__init__(data_col_name, data_col, target_description)
+        super().__init__(config, data_col_name, data_col, target_description)
         distribution = self._generate_distribution()
         self.__validate_distribution(distribution)
 
@@ -158,9 +164,12 @@ class CategoricPlotDescription(BasePlotDescription):
         if not self.n_target_value in log_odds:
             log_odds[self.n_target_value] = 0
         # counts log2 odds
-        # TODO change to support multiple values
+        laplace_smoothing_alpha = self.config.base.log_odds_laplace_smoothing_alpha
         log_odds["log_odds"] = round(
-            np.log2(log_odds[self.p_target_value] / log_odds[self.n_target_value]),
+            np.log2(
+                (log_odds[self.p_target_value] + laplace_smoothing_alpha)
+                / (log_odds[self.n_target_value] + laplace_smoothing_alpha)
+            ),
             2,
         )
         # replace all special values with 0
@@ -220,11 +229,12 @@ class TextPlotDescription(BasePlotDescription):
 
     def __init__(
         self,
+        config: Univariate,
         data_col_name: str,
         data_col: Any,
         target_description: Optional[TargetDescription],
     ) -> None:
-        super().__init__(data_col_name, data_col, target_description)
+        super().__init__(config, data_col_name, data_col, target_description)
         if self.target_description:
             self._words_counts = self.get_word_counts_supervised()
         else:
