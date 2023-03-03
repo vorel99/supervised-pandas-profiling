@@ -110,7 +110,7 @@ def render_variable(
     idx: str,
     summary: Dict[str, Any],
 ) -> Renderable:
-    """Create renderable item for one variable.
+    """Create renderable item for one variable. Adds alerts to variable description.
 
     Parameters
     ----------
@@ -121,7 +121,7 @@ def render_variable(
     idx : str
         Name of variable (column).
     summary : Dict[str, Any]
-        Summary of variable (column).
+        Summary of one variable (column).
 
     Returns
     -------
