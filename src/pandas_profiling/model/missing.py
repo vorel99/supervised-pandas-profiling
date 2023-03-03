@@ -16,8 +16,8 @@ class MissingConfMatrix:
     """Class for confusion matrix in absolute and relative numbers.
 
     Args:
-        absolute_counts (pd.DataFrame): absolute counts of missing.
-        relative_counts (pd.DataFrame): relative counts of missing.
+        absolute_counts (pd.DataFrame): Absolute counts of missing.
+        relative_counts (pd.DataFrame): Relative counts of missing. Row sums at 100%.
     """
 
     absolute_counts: pd.DataFrame
@@ -29,7 +29,7 @@ class MissingConfMatrix:
     def p_value(self) -> float:
         """P value from chi-square test of variables from contingency table."""
         if not self._p_value:
-            self._p_value = chi2_contingency(self.absolute_counts)[1]
+            self._p_value = chi2_contingency(self.absolute_counts, correction=False)[1]
         return self._p_value
 
     @property
