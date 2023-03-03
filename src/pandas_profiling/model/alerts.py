@@ -338,7 +338,7 @@ def check_correlation_alerts(config: Settings, correlations: dict) -> List[Alert
 
 
 def check_missing_alerts(config: Settings, missing: dict):
-    """Check alerts in target module.
+    """Check alerts from missing module.
     - check if missing are depend on target
     """
     alerts = []

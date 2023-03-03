@@ -23,7 +23,7 @@ class WidgetAlerts(Alerts):
             "zeros": "info",
             "truncated": "info",
             "missing": "info",
-            "missing_no_target": "info",
+            "missing_on_target": "info",
             "skewed": "info",
             "high_correlation": "",
             "duplicates": "",
