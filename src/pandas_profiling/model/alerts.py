@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Set
 import numpy as np
 from pandas_profiling.config import Settings
 from pandas_profiling.model.correlations import perform_check_correlation
+from pandas_profiling.model.description_plot import CategoricPlotDescription
 from pandas_profiling.model.missing import MissingConfMatrix
 
 import pandas as pd
@@ -41,6 +42,9 @@ class AlertType(Enum):
 
     MISSING_ON_TARGET = auto()
     """This variable missing values are related to target variable."""
+
+    LOG_ODDS_RATIO = auto()
+    """This variable has high log odds ratio for some value."""
 
     INFINITE = auto()
     """This variable contains infinite values."""
@@ -82,6 +86,13 @@ class Alert:
         column_name: Optional[str] = None,
         fields: Optional[Set] = None,
     ):
+        """
+        Args:
+            alert_type (AlertType) : Type of alert.
+            values (dict): values, we can use in render.
+            column_name (str): Name of related column to alert.
+            fields (set)
+        """
         if values is None:
             values = {}
         if fields is None:
@@ -144,6 +155,39 @@ def check_table_alerts(table: dict) -> List[Alert]:
                 fields={"n"},
             )
         )
+    return alerts
+
+
+def log_odds_ratio_alert(config: Settings, summary: dict) -> List[Alert]:
+    """Get log odds ratio alerts. If some value has highly different target
+    distribution than in whole population, return info alert.
+
+    Args:
+        config (Settings): Setting of report.
+        summary (dict): Description of one variable.
+    """
+    alerts = []
+    if "plot_description" not in summary.keys():
+        return alerts
+
+    _description: CategoricPlotDescription = summary["plot_description"]
+    if not _description.is_supervised():
+        return alerts
+
+    threshold = config.alerts.log_odds_ratio_threshold
+    for index, row in _description.log_odds.iterrows():
+        _log_odds_ratio = row[_description.log_odds_col_name]
+        if abs(_log_odds_ratio) > threshold:
+            alerts.append(
+                Alert(
+                    alert_type=AlertType.LOG_ODDS_RATIO,
+                    values={
+                        "category": row[_description.data_col_name],
+                        "log_odds_ratio": _log_odds_ratio,
+                    },
+                )
+            )
+
     return alerts
 
 
@@ -228,6 +272,8 @@ def categorical_alerts(config: Settings, summary: dict) -> List[Alert]:
             )
         )
 
+    alerts += log_odds_ratio_alert(config, summary)
+
     return alerts
 
 
@@ -291,7 +337,7 @@ def check_variable_alerts(config: Settings, col: str, description: dict) -> List
     Returns:
         A list of alerts.
     """
-    alerts = []
+    alerts: List[Alert] = []
 
     alerts += generic_alerts(description)
 
@@ -309,7 +355,7 @@ def check_variable_alerts(config: Settings, col: str, description: dict) -> List
 
     for idx in range(len(alerts)):
         alerts[idx].column_name = col
-        alerts[idx].values = description
+        alerts[idx].values.update(description)
     return alerts
 
 
