@@ -248,7 +248,7 @@ class NumDescriptionPandas(VariableDescriptionPandas, CatDescription):
         self._bars = bar_count
         super().__init__(config=config, data_col=data_col, **kwargs)
 
-    def _group_distribution(data: pd.DataFrame) -> pd.DataFrame:
+    def _group_distribution(self, data: pd.DataFrame) -> pd.DataFrame:
         """Get unsupervised distribution."""
         # replace bins with middle value (10, 20] -> 15
         data[self.data_col_name] = data[self.data_col_name].apply(lambda x: x.mid)
