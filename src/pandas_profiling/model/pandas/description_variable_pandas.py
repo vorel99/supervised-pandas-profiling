@@ -1,5 +1,5 @@
 import string
-from typing import List, Optional, Tuple
+from typing import List
 
 from pandas_profiling.config import Univariate
 from pandas_profiling.model.description_variable import (
@@ -82,7 +82,7 @@ class VariableDescriptionSupervisedPandas(
         )
 
 
-class CatDescriptionPandas(CatDescription, VariableDescriptionPandas):
+class CatDescriptionPandas(VariableDescriptionPandas, CatDescription):
     """Class for unsupervised categorical pandas variable description."""
 
     _other_placeholder: str = "other ..."
