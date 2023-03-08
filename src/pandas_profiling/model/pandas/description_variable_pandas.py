@@ -179,8 +179,7 @@ class CatDescriptionSupervisedPandas(
         if top_n_classes.size < df[self.data_col_name].nunique():
             # select rows, that are not in top n classes and group them
             other = df[~df[self.data_col_name].isin(top_n_classes)]
-            # TODO check if target col != data col
-            if self.is_supervised():
+            if self.data_col_name != self.target_col_name:
                 other = (
                     other.groupby(self.target_description.name)[self.count_col_name]
                     .sum()

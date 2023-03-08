@@ -1,7 +1,7 @@
 """Logic for alerting the user on possibly problematic patterns in the data (e.g. high number of zeros , constant
 values, high correlations)."""
 from enum import Enum, auto, unique
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 
 import numpy as np
 import pandas as pd
@@ -172,8 +172,10 @@ def log_odds_ratio_alert(config: Settings, summary: dict) -> List[Alert]:
     if "plot_description" not in summary.keys():
         return alerts
 
-    _description: CatDescriptionSupervised = summary["plot_description"]
-    if not _description.is_supervised():
+    _description: Union[CatDescriptionSupervised, CatDescription] = summary[
+        "plot_description"
+    ]
+    if not isinstance(_description, CatDescriptionSupervised):
         return alerts
     threshold = config.alerts.log_odds_ratio_threshold
     for index, row in _description.log_odds.iterrows():

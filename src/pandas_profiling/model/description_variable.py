@@ -39,10 +39,6 @@ class VariableDescription(ABC):
     def data_col_name(self) -> str:
         pass
 
-    def is_supervised(self) -> bool:
-        """Return, if variable description is supervised, or not."""
-        return False
-
 
 class VariableDescriptionSupervised(VariableDescription):
     """Base class for supervised variable description.
@@ -93,13 +89,6 @@ class VariableDescriptionSupervised(VariableDescription):
             "target description is not defined at '{}' column".format(
                 self.data_col_name
             )
-        )
-
-    def is_supervised(self) -> bool:
-        return True
-        return (
-            self.target_description is not None
-            and self.target_description.name != self.data_col_name
         )
 
 
@@ -187,7 +176,7 @@ class CatDescriptionSupervised(VariableDescriptionSupervised, CatDescription):
         log_odds (pd.DataFrame): Log2odds DataFrame preprocessed for plotting.
     """
 
-    __log_odds: pd.DataFrame = None
+    __log_odds: pd.DataFrame
     log_odds_col_name: str = "log_odds_ratio"
     log_odds_text_col: str = "text_position"
 
