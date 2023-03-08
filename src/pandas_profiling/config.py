@@ -308,7 +308,7 @@ class Report(BaseModel):
     # Numeric precision for displaying statistics
     precision: int = 8
     # variables module setting
-    variables: ReportVariables = ReportVariables()
+    vars: ReportVariables = ReportVariables()
     # limit count of variables in report
     # for dataframes with 200+ columns is report unusable
     max_vars_count: Optional[int] = None
