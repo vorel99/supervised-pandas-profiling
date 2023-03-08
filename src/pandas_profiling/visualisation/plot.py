@@ -14,8 +14,10 @@ from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_variable import (
-    CategoricPlotDescription,
-    TextPlotDescription,
+    CatDescription,
+    CatDescriptionSupervised,
+    TextDescription,
+    TextDescriptionSupervised,
 )
 from pandas_profiling.utils.common import convert_timestamp_to_datetime
 from pandas_profiling.visualisation.context import manage_matplotlib_context
@@ -42,7 +44,7 @@ I'm able co color bars, or the text, but not both at once.
 
 
 def supervised_plot(func):
-    def inner(config: Settings, desc_plot: CategoricPlotDescription, mini: bool):
+    def inner(config: Settings, desc_plot: CatDescription, mini: bool):
         if not desc_plot.is_supervised():
             raise ValueError(
                 "Plot description is not supervised. '{}'".format(
@@ -56,13 +58,13 @@ def supervised_plot(func):
 
 @supervised_plot
 def _plot_cat_log_odds_ratio(
-    config: Settings, desc_plot: CategoricPlotDescription, mini: bool
+    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool
 ) -> Plotter:
     """Create log odds ratio plot for categorical column.
 
     Args:
         config (Setting): Config of report. Used for colors.
-        desc_plot (CategoricPlotDescription):
+        desc_plot (CatDescriptionSupervised):
             Plot description, with prepared log2 odds ratio DataFrame.
         mini (bool): Index, if plot is normal size, or mini.
 
@@ -96,13 +98,13 @@ def _plot_cat_log_odds_ratio(
 
 
 def _plot_cat_dist_supervised(
-    config: Settings, desc_plot: CategoricPlotDescription, mini: bool
+    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool
 ) -> Plotter:
     """Create distribution categorical plot for supervised report.
 
     Args:
         config (Setting): Config of report. Used for colors.
-        desc_plot (CategoricPlotDescription):
+        desc_plot (CatDescriptionSupervised):
             Plot description, with prepared distribution DataFrame.
         mini (bool): Index, if plot is normal size, or mini.
 
@@ -124,7 +126,10 @@ def _plot_cat_dist_supervised(
         color=desc_plot.target_col_name,
     )
     # supervised plot
-    if desc_plot.is_supervised():
+    if (
+        desc_plot.is_supervised()
+        and desc_plot.data_col_name != desc_plot.target_col_name
+    ):
         p = (
             p.add(so.Bar(alpha=1), so.Dodge(), legend=False)
             .add(
@@ -169,13 +174,13 @@ def _plot_cat_dist_supervised(
 
 
 def _plot_cat_dist_unsupervised(
-    config: Settings, desc_plot: CategoricPlotDescription, mini: bool
+    config: Settings, desc_plot: CatDescription, mini: bool
 ) -> Plotter:
     """Create distribution categorical plot for unsupervised report.
 
     Args:
         config (Setting): Config of report. Used for colors.
-        desc_plot (CategoricPlotDescription):
+        desc_plot (CatDescription):
             Plot description, with prepared distribution DataFrame.
         mini (bool): Index, if plot is normal size, or mini.
 
@@ -209,13 +214,13 @@ def _plot_cat_dist_unsupervised(
 
 @supervised_plot
 def _plot_hist_log_odds_ratio(
-    config: Settings, desc_plot: CategoricPlotDescription, mini: bool
+    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool
 ) -> Plotter:
     """Create log2 odds ratio graph for numeric variable.
 
     Args:
         config (Setting): Config of report. Used for colors.
-        desc_plot (CategoricPlotDescription):
+        desc_plot (CatDescriptionSupervised):
             Plot description, with prepared log2 odds ratio DataFrame.
         mini (bool): Index, if plot is normal size, or mini.
 
@@ -251,13 +256,13 @@ def _plot_hist_log_odds_ratio(
 
 
 def _plot_hist_dist(
-    config: Settings, desc_plot: CategoricPlotDescription, mini: bool
+    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool
 ) -> Plotter:
     """Plot distribution of numeric variable.
 
     Args:
         config (Setting): Config of report. Used for colors.
-        desc_plot (CategoricPlotDescription):
+        desc_plot (CatDescriptionSupervised):
             Plot description, with prepared distribution DataFrame.
         mini (bool): Index, if plot is normal size, or mini.
 
@@ -270,12 +275,16 @@ def _plot_hist_dist(
         desc_plot.distribution,
         x=desc_plot.data_col_name,
         y=desc_plot.count_col_name,
-        color=desc_plot.target_col_name,
     )
     # supervised
     if desc_plot.is_supervised():
         p = (
-            p.add(so.Bar(alpha=1), so.Dodge(), legend=False)
+            p.add(
+                so.Bar(alpha=1),
+                so.Dodge(),
+                legend=False,
+                color=desc_plot.target_col_name,
+            )
             .add(
                 so.Text(
                     {"fontweight": "bold", "clip_on": False, "rotation": 45},
@@ -311,13 +320,13 @@ def _plot_hist_dist(
 
 
 def _plot_word_cloud(
-    config: Settings, plot_description: TextPlotDescription, mini: bool
+    config: Settings, plot_description: TextDescriptionSupervised, mini: bool
 ) -> plt.Figure:
     """Plot word cloud for string variable.
 
     Args:
         config (Setting): Config of report. Used for colors.
-        desc_plot (CategoricPlotDescription):
+        desc_plot (TextDescriptionSupervised):
             Plot description, with prepared words DataFrame.
         mini (bool): Index, if plot is normal size, or mini.
 
@@ -334,7 +343,7 @@ def _plot_word_cloud(
         For supervised profile, return weighted color from positive and negative count.
         """
         # color for unsupervised plot
-        if not plot_description.target_description:
+        if not plot_description.is_supervised():
             return config.html.style.primary_color
         positive_count = int(
             plot_description.words_counts.loc[word, plot_description.positive_col_name]
@@ -441,10 +450,12 @@ def _plot_histogram(
 
 @manage_matplotlib_context()
 def plot_cat_dist(
-    config: Settings, plot_description: CategoricPlotDescription, mini: bool = False
+    config: Settings,
+    plot_description: CatDescriptionSupervised,
+    mini: bool = False,
 ) -> str:
     """Plot categorical distribution."""
-    if plot_description.target_description:
+    if plot_description.is_supervised():
         plot = _plot_cat_dist_supervised(config, plot_description, mini)
     else:
         plot = _plot_cat_dist_unsupervised(config, plot_description, mini)
@@ -453,7 +464,7 @@ def plot_cat_dist(
 
 @manage_matplotlib_context()
 def plot_cat_log_odds(
-    config: Settings, plot_description: CategoricPlotDescription, mini: bool = False
+    config: Settings, plot_description: CatDescriptionSupervised, mini: bool = False
 ) -> str:
     """Plot categorical log odds graph."""
     plot = _plot_cat_log_odds_ratio(config, plot_description, mini)
@@ -462,10 +473,10 @@ def plot_cat_log_odds(
 
 @manage_matplotlib_context()
 def plot_hist_dist(
-    config: Settings, plot_description: CategoricPlotDescription, mini: bool = False
+    config: Settings, plot_description: CatDescriptionSupervised, mini: bool = False
 ) -> str:
     """Plot histogram for continuos data."""
-    if plot_description.target_description:
+    if plot_description.is_supervised():
         plot = _plot_cat_dist_supervised(config, plot_description, mini)
     else:
         plot = _plot_hist_dist(config, plot_description, mini)
@@ -474,7 +485,7 @@ def plot_hist_dist(
 
 @manage_matplotlib_context()
 def plot_hist_log_odds(
-    config: Settings, plot_description: CategoricPlotDescription, mini: bool = False
+    config: Settings, plot_description: CatDescriptionSupervised, mini: bool = False
 ) -> str:
     """Plot continuous log odds graph."""
     if plot_description.is_supervised():
@@ -486,7 +497,7 @@ def plot_hist_log_odds(
 
 @manage_matplotlib_context()
 def plot_word_cloud(
-    config: Settings, plot_description: TextPlotDescription, mini: bool = False
+    config: Settings, plot_description: TextDescriptionSupervised, mini: bool = False
 ) -> str:
     """Plot word cloud for text column."""
     plot = _plot_word_cloud(config, plot_description, mini)

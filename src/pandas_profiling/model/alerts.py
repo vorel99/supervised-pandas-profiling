@@ -7,7 +7,10 @@ import numpy as np
 import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.correlations import perform_check_correlation
-from pandas_profiling.model.description_variable import CategoricPlotDescription
+from pandas_profiling.model.description_variable import (
+    CatDescription,
+    CatDescriptionSupervised,
+)
 from pandas_profiling.model.missing import MissingConfMatrix
 
 
@@ -169,10 +172,9 @@ def log_odds_ratio_alert(config: Settings, summary: dict) -> List[Alert]:
     if "plot_description" not in summary.keys():
         return alerts
 
-    _description: CategoricPlotDescription = summary["plot_description"]
+    _description: CatDescriptionSupervised = summary["plot_description"]
     if not _description.is_supervised():
         return alerts
-
     threshold = config.alerts.log_odds_ratio_threshold
     for index, row in _description.log_odds.iterrows():
         _log_odds_ratio = row[_description.log_odds_col_name]

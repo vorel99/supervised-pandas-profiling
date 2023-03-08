@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
@@ -10,29 +10,54 @@ import pandas as pd
 
 
 @dataclass
-class BasePlotDescription(metaclass=ABCMeta):
-    """Base class for plot description.
+class VariableDescription(ABC):
+    """Base class for variable description.
 
     Attributes:
         config (Univariate): Setting of variables description.
-        data_col_name (str): Name of data column.
-        target_col_name (str or None): Name of target column.
         data_col (Any): Column with data values.
-        target_description (TargetDescription or None): Description of target column,
-            if exists.
+        data_col_name (str): Name of data column.
+
     """
 
-    config: Univariate
-    data_col_name: str
-    data_col: Any
-    target_description: Optional[TargetDescription]
+    def __init__(self, config: Univariate, **kwargs) -> None:
+        """Setup basic parameters for variable description.
+
+        Args:
+            config (Univariate): Config of variable description from report config.
+        """
+        self.config = config
+        super().__init__(**kwargs)
+
+    @property
+    @abstractmethod
+    def data_col(self) -> Any:
+        pass
+
+    @property
+    @abstractmethod
+    def data_col_name(self) -> str:
+        pass
+
+    def is_supervised(self) -> bool:
+        """Return, if variable description is supervised, or not."""
+        return False
+
+
+class VariableDescriptionSupervised(VariableDescription):
+    """Base class for supervised variable description.
+
+    Attributes:
+        target_col_name (str): Name of target column.
+        p_target_value (int): Positive value of target column.
+        n_target_value (int): Negative value of target column.
+        target_description (TargetDescription): Description of target column.
+    """
+
+    target_description: TargetDescription
 
     def __init__(
-        self,
-        config: Univariate,
-        data_col_name: str,
-        data_col: Any,
-        target_description: Optional[TargetDescription],
+        self, config: Univariate, target_description: TargetDescription, **kwargs
     ) -> None:
         """Setup basic parameters for plot description.s
 
@@ -41,16 +66,12 @@ class BasePlotDescription(metaclass=ABCMeta):
             data_col (Any): Column with data values.
             target_col_name (str or None): Name of target column.
         """
-        self.config = config
-        self.data_col_name = data_col_name
-        self.data_col = data_col
         self.target_description = target_description
+        super().__init__(config=config, **kwargs)
 
     @property
-    def target_col_name(self) -> Optional[str]:
-        if self.target_description:
-            return self.target_description.name
-        return None
+    def target_col_name(self) -> str:
+        return self.target_description.name
 
     @property
     def p_target_value(self) -> int:
@@ -75,40 +96,27 @@ class BasePlotDescription(metaclass=ABCMeta):
         )
 
     def is_supervised(self) -> bool:
-        """Return, if plot should be plotted as supervised, or not.
-        Plot is supervised, if target description is not None."""
+        return True
         return (
             self.target_description is not None
             and self.target_description.name != self.data_col_name
         )
 
 
-class CategoricPlotDescription(BasePlotDescription):
-    """Base class for categorical plot description.
+class CatDescription(VariableDescription):
+    """Abstract class for categorical unsupervised variable description.
 
     Attributes:
         distribution (pd.DataFrame): Distribution DataFrame preprocessed for plotting.
-        log_odds (pd.DataFrame or None): Log2odds DataFrame preprocessed for plotting.
     """
 
-    __distribution: pd.DataFrame
-    __log_odds: Optional[pd.DataFrame] = None
-
-    count_col_name: str = "count"
-    log_odds_col_name: str = "log_odds_ratio"
-
-    log_odds_text_col: str = "text_position"
-
-    def __init__(
-        self,
-        config: Univariate,
-        data_col_name: str,
-        data_col: Any,
-        target_description: Optional[TargetDescription],
-    ) -> None:
-        super().__init__(config, data_col_name, data_col, target_description)
+    def __init__(self, config: Univariate, **kwargs) -> None:
+        super().__init__(config=config, **kwargs)
         distribution = self._generate_distribution()
         self.__validate_distribution(distribution)
+
+    __distribution: pd.DataFrame
+    count_col_name: str = "count"
 
     @property
     def distribution(self) -> pd.DataFrame:
@@ -126,16 +134,6 @@ class CategoricPlotDescription(BasePlotDescription):
                 "Distribution not set at '{}' variable.".format(self.data_col_name)
             )
         return self.__distribution
-
-    @property
-    def log_odds(self) -> Optional[pd.DataFrame]:
-        """Returns DataFrame with relative log2odds for data column.
-        format:
-            col_name,   log_odds
-            male        -2
-            female      2
-        """
-        return self.__log_odds
 
     @abstractmethod
     def _generate_distribution(self) -> pd.DataFrame:
@@ -155,6 +153,59 @@ class CategoricPlotDescription(BasePlotDescription):
             2               1               0
         """
         pass
+
+    def __validate_distribution(self, distribution: pd.DataFrame) -> None:
+        """Validate and set distribution DataFrame.
+        - check if there are all needed columns
+        - if report is supervised, generate log_odds
+
+        Args:
+            distribution (pd.DataFrame) : DataFrame, we want to validate.
+        """
+        if not isinstance(distribution, pd.DataFrame):
+            raise ValueError("Preprocessed plot must be pd.DataFrame instance.")
+        self._check_columns(distribution)
+        self.__distribution = distribution.reset_index(drop=True)
+
+    def _check_columns(self, df: pd.DataFrame):
+        """Checks if df contains all columns (data_col, target_col, count_col)."""
+        if self.data_col_name not in df:
+            raise ValueError(
+                "Data column '{}' not in DataFrame.".format(self.data_col_name)
+            )
+        if self.count_col_name not in df:
+            raise ValueError(
+                "Count column not in DataFrame. '{}'".format(self.data_col_name)
+            )
+
+
+class CatDescriptionSupervised(VariableDescriptionSupervised, CatDescription):
+    """Abstract class for supervised categorical variable description.
+
+    Attributes:
+        distribution (pd.DataFrame): Distribution DataFrame preprocessed for plotting.
+        log_odds (pd.DataFrame): Log2odds DataFrame preprocessed for plotting.
+    """
+
+    __log_odds: pd.DataFrame = None
+    log_odds_col_name: str = "log_odds_ratio"
+    log_odds_text_col: str = "text_position"
+
+    def __init__(
+        self, config: Univariate, target_description: TargetDescription, **kwargs
+    ) -> None:
+        super().__init__(config=config, target_description=target_description, **kwargs)
+        self.__generate_log_odds_ratio()
+
+    @property
+    def log_odds(self) -> pd.DataFrame:
+        """Returns DataFrame with relative log2odds for data column.
+        format:
+            col_name,   log_odds
+            male        -2
+            female      2
+        """
+        return self.__log_odds
 
     def __generate_log_odds_ratio(self):
         """Generates log2 odds ratio preprocessed DataFrame based on distribution.
@@ -194,9 +245,8 @@ class CategoricPlotDescription(BasePlotDescription):
         log_odds[_odds_ratio_col_name] = log_odds[_odds_col_name] / population_odds
 
         # log odds ratio
-        log_odds[self.log_odds_col_name] = round(
-            np.log2(log_odds[_odds_ratio_col_name]), 2
-        )
+        log_odds[self.log_odds_col_name] = np.log2(log_odds[_odds_ratio_col_name])
+        log_odds[self.log_odds_col_name] = log_odds[self.log_odds_col_name].round(2)
 
         # replace all special values with 0
         log_odds.fillna(0, inplace=True)
@@ -209,30 +259,13 @@ class CategoricPlotDescription(BasePlotDescription):
         ] = "right"
         self.__log_odds = log_odds
 
-    def __validate_distribution(self, distribution: pd.DataFrame) -> None:
-        """Validate and set distribution DataFrame.
-        - check if there are all needed columns
-        - if report is supervised, generate log_odds
-
-        Args:
-            distribution (pd.DataFrame) : DataFrame, we want to validate.
-        """
-        if not isinstance(distribution, pd.DataFrame):
-            raise ValueError("Preprocessed plot must be pd.DataFrame instance.")
-        self.__check_columns(distribution)
-        self.__distribution = distribution.reset_index(drop=True)
-
-        # generate log_odds just for supervised report
-        if self.is_supervised():
-            self.__generate_log_odds_ratio()
-
-    def __check_columns(self, df: pd.DataFrame):
+    def _check_columns(self, df: pd.DataFrame):
         """Checks if df contains all columns (data_col, target_col, count_col)."""
         if self.data_col_name not in df:
             raise ValueError(
                 "Data column '{}' not in DataFrame.".format(self.data_col_name)
             )
-        if self.is_supervised() and (self.target_description.name not in df):
+        if self.target_description.name not in df:
             raise ValueError(
                 "Target column '{}' not in DataFrame.".format(
                     self.target_description.name
@@ -244,34 +277,53 @@ class CategoricPlotDescription(BasePlotDescription):
             )
 
 
-class TextPlotDescription(BasePlotDescription):
-    """Class to describe word cloud for text format data.
+class TextDescription(VariableDescription):
+    """Abstract class for unsupervised text variable description.
 
     Attributes:
-        words_counts (pd.DataFrame): Sorted words and counts of those words.
+        count_col_name (str): Name of column with word counts.
+        words_counts (pd.DataFrame):
+            Sorted data with words in data_col_name and counts in count_col_name.
     """
 
     _words_counts: pd.DataFrame
 
-    def __init__(
-        self,
-        config: Univariate,
-        data_col_name: str,
-        data_col: Any,
-        target_description: Optional[TargetDescription],
-    ) -> None:
-        super().__init__(config, data_col_name, data_col, target_description)
-        if self.target_description:
-            self._words_counts = self.get_word_counts_supervised()
-        else:
-            self._words_counts = self.get_word_counts(self.data_col).to_frame(
-                name=self.count_col_name
-            )
+    def __init__(self, config: Univariate, **kwargs) -> None:
+        super().__init__(config=config, **kwargs)
+        self._words_counts = self.get_word_counts()
 
     @property
     def count_col_name(self) -> str:
         """Name of column with absolute count of word."""
         return "count"
+
+    @property
+    def words_counts(self) -> pd.DataFrame:
+        return self._words_counts
+
+    @abstractmethod
+    def get_word_counts(self) -> pd.DataFrame:
+        """Generate word counts for input series.
+
+        Returns:
+            Series with unique words as index and the computed frequency as value.
+        """
+        pass
+
+
+class TextDescriptionSupervised(VariableDescriptionSupervised, TextDescription):
+    """Abstract class for supervised text variable description.
+
+    Attributes:
+        positive_col_name (str): Name of column with word count for positive outcome.
+        negative_col_name (str): Name of column with word count for negative outcome.
+        words_counts (pd.DataFrame): Sorted words and counts of those words.
+    """
+
+    def __init__(
+        self, config: Univariate, target_description: TargetDescription, **kwargs
+    ) -> None:
+        super().__init__(config=config, target_description=target_description, **kwargs)
 
     @property
     def positive_col_name(self) -> str:
@@ -282,22 +334,3 @@ class TextPlotDescription(BasePlotDescription):
     def negative_col_name(self) -> str:
         """Name of column with count of word for negative target."""
         return "negative"
-
-    @property
-    def words_counts(self) -> pd.DataFrame:
-        return self._words_counts
-
-    @abstractmethod
-    def get_word_counts(self, data: Any) -> pd.Series:
-        """Generate word counts for input series.
-
-        Returns:
-            Series with unique words as index and the computed frequency as value.
-        """
-        pass
-
-    @abstractmethod
-    def get_word_counts_supervised(self) -> pd.DataFrame:
-        """Generate word counts for supervised report.
-        Splits data by target."""
-        pass

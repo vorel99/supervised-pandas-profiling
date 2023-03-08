@@ -2,6 +2,7 @@ from typing import List, Tuple, Union
 
 import pandas as pd
 from pandas_profiling.config import Settings
+from pandas_profiling.model.description_variable import CatDescriptionSupervised
 from pandas_profiling.report.formatters import (
     fmt,
     fmt_bytesize,
@@ -515,9 +516,10 @@ def render_categorical(config: Settings, summary: dict) -> dict:
 
     string_items: List[Renderable] = [frequency_table]
 
+    description: CatDescriptionSupervised = summary["plot_description"]
     # distribution
     distribution = Image(
-        plot_cat_dist(config, summary["plot_description"]),
+        plot_cat_dist(config, description),
         image_format=image_format,
         alt="Histogram",
         name="Distribution",
@@ -525,9 +527,8 @@ def render_categorical(config: Settings, summary: dict) -> dict:
 
     # log odds
     if (
-        summary["plot_description"].target_col_name is not None
-        and summary["plot_description"].data_col_name
-        != summary["plot_description"].target_col_name
+        description.is_supervised()
+        and description.data_col_name != description.target_col_name
     ):
         log_odds = Image(
             plot_cat_log_odds(config, summary["plot_description"]),
