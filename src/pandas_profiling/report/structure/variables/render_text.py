@@ -77,7 +77,11 @@ class RenderText(BaseRenderVariable):
         )
         top_items.append(table)
 
-        if self.config.vars.text.words and self.config.report.vars.distribution_on_top:
+        # we dont have log odds plot -> plot distribution if dist or logodds enabled
+        if self.config.vars.text.words and (
+            self.config.report.vars.distribution_on_top
+            or self.config.report.vars.log_odds_on_top
+        ):
             top_items.append(self.__get_wordcloud(True))
         return Container(top_items, sequence_type="grid")
 
