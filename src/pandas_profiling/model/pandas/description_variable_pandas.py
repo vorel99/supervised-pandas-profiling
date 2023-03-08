@@ -1,8 +1,9 @@
 import string
 from typing import List, Optional, Tuple
 
+import pandas as pd
 from pandas_profiling.config import Univariate
-from pandas_profiling.model.description_plot import (
+from pandas_profiling.model.description_variable import (
     BasePlotDescription,
     CategoricPlotDescription,
     TextPlotDescription,
@@ -10,8 +11,6 @@ from pandas_profiling.model.description_plot import (
 from pandas_profiling.model.pandas.description_target_pandas import (
     TargetDescriptionPandas,
 )
-
-import pandas as pd
 
 
 class PlotDescriptionPandas(BasePlotDescription):

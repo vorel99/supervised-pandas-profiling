@@ -8,7 +8,7 @@ from pandas_profiling.model.pandas.describe_categorical_pandas import (
     unicode_summary_vc,
     word_summary_vc,
 )
-from pandas_profiling.model.pandas.description_plot_pandas import (
+from pandas_profiling.model.pandas.description_variable_pandas import (
     TextPlotDescriptionPandas,
 )
 from pandas_profiling.model.summary_algorithms import (

@@ -11,7 +11,7 @@ else:
 
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
-from pandas_profiling.model.pandas.description_plot_pandas import (
+from pandas_profiling.model.pandas.description_variable_pandas import (
     NumericPlotDescriptionPandas,
 )
 from pandas_profiling.model.summary_algorithms import (

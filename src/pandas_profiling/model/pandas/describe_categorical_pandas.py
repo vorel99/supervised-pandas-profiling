@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
-from pandas_profiling.model.pandas.description_plot_pandas import (
+from pandas_profiling.model.pandas.description_variable_pandas import (
     CategoricalPlotDescriptionPandas,
 )
 from pandas_profiling.model.pandas.utils_pandas import weighted_median

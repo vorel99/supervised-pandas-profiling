@@ -13,7 +13,7 @@ from matplotlib.colors import Colormap, LinearSegmentedColormap, ListedColormap,
 from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
 from pandas_profiling.config import Settings
-from pandas_profiling.model.description_plot import (
+from pandas_profiling.model.description_variable import (
     CategoricPlotDescription,
     TextPlotDescription,
 )

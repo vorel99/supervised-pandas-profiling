@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.correlations import perform_check_correlation
-from pandas_profiling.model.description_plot import CategoricPlotDescription
+from pandas_profiling.model.description_variable import CategoricPlotDescription
 from pandas_profiling.model.missing import MissingConfMatrix
 
 

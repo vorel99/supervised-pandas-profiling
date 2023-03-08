@@ -4,14 +4,13 @@ import numpy as np
 import pandas as pd
 import pytest
 from pandas_profiling.config import Target, Univariate
-from pandas_profiling.model.pandas.description_plot_pandas import (
-    BasePlotDescription,
+from pandas_profiling.model.pandas.description_target_pandas import (
+    TargetDescriptionPandas,
+)
+from pandas_profiling.model.pandas.description_variable_pandas import (
     CategoricalPlotDescriptionPandas,
     CategoricPlotDescription,
     NumericPlotDescriptionPandas,
-)
-from pandas_profiling.model.pandas.description_target_pandas import (
-    TargetDescriptionPandas,
 )
 
 
