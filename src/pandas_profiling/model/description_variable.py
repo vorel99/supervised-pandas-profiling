@@ -11,59 +11,48 @@ import pandas as pd
 
 @dataclass
 class VariableDescription(ABC):
-    """Base class for variable description.
+    """Interface for variable description.
 
     Attributes:
         config (Univariate): Setting of variables description.
         data_col (Any): Column with data values.
         data_col_name (str): Name of data column.
-
     """
 
-    def __init__(self, config: Univariate, **kwargs) -> None:
-        """Setup basic parameters for variable description.
-
-        Args:
-            config (Univariate): Config of variable description from report config.
-        """
-        self.config = config
-        super().__init__(**kwargs)
+    @property
+    @abstractmethod
+    def config(self) -> Univariate:
+        """Config of variables description."""
+        pass
 
     @property
     @abstractmethod
     def data_col(self) -> Any:
+        """Series with data."""
         pass
 
     @property
     @abstractmethod
     def data_col_name(self) -> str:
+        """Name of data column."""
         pass
 
 
 class VariableDescriptionSupervised(VariableDescription):
-    """Base class for supervised variable description.
+    """Interface for supervised variable description.
+    Extension of VariableDescription.
 
     Attributes:
+        target_description (TargetDescription): Description of target column.
         target_col_name (str): Name of target column.
         p_target_value (int): Positive value of target column.
         n_target_value (int): Negative value of target column.
-        target_description (TargetDescription): Description of target column.
     """
 
-    target_description: TargetDescription
-
-    def __init__(
-        self, config: Univariate, target_description: TargetDescription, **kwargs
-    ) -> None:
-        """Setup basic parameters for plot description.s
-
-        Args:
-            data_col_name (str): Name of data column.
-            data_col (Any): Column with data values.
-            target_col_name (str or None): Name of target column.
-        """
-        self.target_description = target_description
-        super().__init__(config=config, **kwargs)
+    @property
+    @abstractmethod
+    def target_description(self) -> TargetDescription:
+        """Description of target column."""
 
     @property
     def target_col_name(self) -> str:
@@ -72,37 +61,22 @@ class VariableDescriptionSupervised(VariableDescription):
     @property
     def p_target_value(self) -> int:
         """Positive binary target value."""
-        if self.target_description:
-            return self.target_description.bin_positive
-        raise ValueError(
-            "target description is not defined at '{}' column".format(
-                self.data_col_name
-            )
-        )
+        return self.target_description.bin_positive
 
     @property
     def n_target_value(self) -> int:
         """Negative binary target value."""
-        if self.target_description:
-            return self.target_description.bin_negative
-        raise ValueError(
-            "target description is not defined at '{}' column".format(
-                self.data_col_name
-            )
-        )
+        return self.target_description.bin_negative
 
 
 class CatDescription(VariableDescription):
     """Abstract class for categorical unsupervised variable description.
+    Extension of VariableDescription
 
     Attributes:
         distribution (pd.DataFrame): Distribution DataFrame preprocessed for plotting.
+        count_col_name (str): Column name for count column.
     """
-
-    def __init__(self, config: Univariate, **kwargs) -> None:
-        super().__init__(config=config, **kwargs)
-        distribution = self._generate_distribution()
-        self.__validate_distribution(distribution)
 
     __distribution: pd.DataFrame
     count_col_name: str = "count"
@@ -118,10 +92,8 @@ class CatDescription(VariableDescription):
             1           1               5
             2           0               8
             ..."""
-        if self.__distribution is None:
-            raise ValueError(
-                "Distribution not set at '{}' variable.".format(self.data_col_name)
-            )
+        if not hasattr(self, "__distribution"):
+            self.__validate_distribution()
         return self.__distribution
 
     @abstractmethod
@@ -143,7 +115,7 @@ class CatDescription(VariableDescription):
         """
         pass
 
-    def __validate_distribution(self, distribution: pd.DataFrame) -> None:
+    def __validate_distribution(self) -> None:
         """Validate and set distribution DataFrame.
         - check if there are all needed columns
         - if report is supervised, generate log_odds
@@ -151,6 +123,7 @@ class CatDescription(VariableDescription):
         Args:
             distribution (pd.DataFrame) : DataFrame, we want to validate.
         """
+        distribution = self._generate_distribution()
         if not isinstance(distribution, pd.DataFrame):
             raise ValueError("Preprocessed plot must be pd.DataFrame instance.")
         self._check_columns(distribution)
@@ -168,23 +141,18 @@ class CatDescription(VariableDescription):
             )
 
 
-class CatDescriptionSupervised(VariableDescriptionSupervised, CatDescription):
-    """Abstract class for supervised categorical variable description.
+class CatDescriptionSupervised(CatDescription, VariableDescriptionSupervised):
+    """Interface for supervised categorical variable description.
+    Extension of CatDescription and VariableDescriptionSupervised.
 
     Attributes:
-        distribution (pd.DataFrame): Distribution DataFrame preprocessed for plotting.
-        log_odds (pd.DataFrame): Log2odds DataFrame preprocessed for plotting.
+        log_odds (pd.DataFrame): Log2 odds DataFrame preprocessed for plotting.
+        log_odds_col_name (str): Column name for count column.
     """
 
     __log_odds: pd.DataFrame
     log_odds_col_name: str = "log_odds_ratio"
     log_odds_text_col: str = "text_position"
-
-    def __init__(
-        self, config: Univariate, target_description: TargetDescription, **kwargs
-    ) -> None:
-        super().__init__(config=config, target_description=target_description, **kwargs)
-        self.__generate_log_odds_ratio()
 
     @property
     def log_odds(self) -> pd.DataFrame:
@@ -194,6 +162,8 @@ class CatDescriptionSupervised(VariableDescriptionSupervised, CatDescription):
             male        -2
             female      2
         """
+        if not hasattr(self, "__log_odds"):
+            self.__generate_log_odds_ratio()
         return self.__log_odds
 
     def __generate_log_odds_ratio(self):
@@ -267,7 +237,8 @@ class CatDescriptionSupervised(VariableDescriptionSupervised, CatDescription):
 
 
 class TextDescription(VariableDescription):
-    """Abstract class for unsupervised text variable description.
+    """Interface for unsupervised text variable description.
+    Extension of VariableDescription.
 
     Attributes:
         count_col_name (str): Name of column with word counts.
@@ -277,10 +248,6 @@ class TextDescription(VariableDescription):
 
     _words_counts: pd.DataFrame
 
-    def __init__(self, config: Univariate, **kwargs) -> None:
-        super().__init__(config=config, **kwargs)
-        self._words_counts = self.get_word_counts()
-
     @property
     def count_col_name(self) -> str:
         """Name of column with absolute count of word."""
@@ -288,10 +255,12 @@ class TextDescription(VariableDescription):
 
     @property
     def words_counts(self) -> pd.DataFrame:
+        if not hasattr(self, "_words_counts"):
+            self._words_counts = self._get_word_counts()
         return self._words_counts
 
     @abstractmethod
-    def get_word_counts(self) -> pd.DataFrame:
+    def _get_word_counts(self) -> pd.DataFrame:
         """Generate word counts for input series.
 
         Returns:
@@ -300,19 +269,14 @@ class TextDescription(VariableDescription):
         pass
 
 
-class TextDescriptionSupervised(VariableDescriptionSupervised, TextDescription):
-    """Abstract class for supervised text variable description.
+class TextDescriptionSupervised(TextDescription, VariableDescriptionSupervised):
+    """Interface for supervised text variable description.
+    Extension of TextDescription and VariableDescriptionSupervised.
 
     Attributes:
         positive_col_name (str): Name of column with word count for positive outcome.
         negative_col_name (str): Name of column with word count for negative outcome.
-        words_counts (pd.DataFrame): Sorted words and counts of those words.
     """
-
-    def __init__(
-        self, config: Univariate, target_description: TargetDescription, **kwargs
-    ) -> None:
-        super().__init__(config=config, target_description=target_description, **kwargs)
 
     @property
     def positive_col_name(self) -> str:
