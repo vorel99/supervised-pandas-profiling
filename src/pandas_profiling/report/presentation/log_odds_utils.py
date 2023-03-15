@@ -50,6 +50,9 @@ def log_odds_table(
         row_dict["positive_count"] = row[description.p_target_value]
         row_dict["negative_count"] = row[description.n_target_value]
         row_dict["log_odds_ratio"] = row_log_odds_ratio
+        row_dict["max"] = max
+        row_dict["min"] = min
+
         # width of displayed bar
         if isinstance(row_log_odds_ratio, float):
             row_dict["width"] = (
