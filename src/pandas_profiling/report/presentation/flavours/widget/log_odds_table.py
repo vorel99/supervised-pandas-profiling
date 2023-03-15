@@ -28,10 +28,7 @@ class WidgetLogOddsTable(LogOddsTable):
                 (
                     widgets.Label(str(row["label"])),
                     widgets.FloatProgress(
-                        value=row["log_odds_ratio"],
-                        min=row["min"],
-                        max=row["max"],
-                        bar_style="",
+                        value=row["log_odds_ratio"], min=0, max=row["max"], bar_style=""
                     ),
                     widgets.Label(str(row["positive_count"])),
                     widgets.Label(str(row["negative_count"])),
