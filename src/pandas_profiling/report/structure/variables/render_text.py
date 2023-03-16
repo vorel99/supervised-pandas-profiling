@@ -162,7 +162,9 @@ class RenderText(BaseRenderVariable):
             items.append(
                 LogOddsTable(
                     lo_table,
-                    name="Log odds words",
+                    name="Log odds words (with Laplace smoothing alpha = {})".format(
+                        self.config.vars.base.log_odds_laplace_smoothing_alpha
+                    ),
                     anchor_id="{}cwo".format(self.summary["varid"]),
                     redact=self.config.vars.cat.redact,
                 )
