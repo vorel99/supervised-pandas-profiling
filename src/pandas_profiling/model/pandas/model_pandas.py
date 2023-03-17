@@ -2,6 +2,9 @@ from typing import Any, Dict
 
 import pandas as pd
 from pandas_profiling.model.model import BaseDataProcessor
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 
@@ -15,18 +18,37 @@ class DataProcessorPandas(BaseDataProcessor):
     def data(self) -> Any:
         return self.preprocessed_data
 
-    def prepare_num(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
+    def fit_num(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
         return col.to_frame()
 
-    def prepare_cat(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
+    def fit_cat(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
         enc = OneHotEncoder(handle_unknown="ignore")
         transformed = enc.fit_transform(col.to_frame()).toarray()
-        self.transformations[col.name] = enc
         new_data = pd.DataFrame(transformed, columns=enc.get_feature_names_out())
+        self.transformations[col.name] = enc
         return new_data
 
-    def prepare_text(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
-        return col.to_frame()
+    def fit_text(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
+        text_logodds: pd.DataFrame = col_desc["plot_description"].log_odds
+        significant_words = text_logodds[
+            text_logodds["log_odds_ratio"].abs() > 0.5
+        ].index.to_list()
+        print(significant_words, col.name)
+        if len(significant_words) == 0:
+            return pd.DataFrame()
+        # get counts of significant words
+        pipe = Pipeline(
+            [
+                ("count", CountVectorizer(vocabulary=significant_words)),
+                ("tfidf", TfidfTransformer()),
+            ]
+        )
+        transformed = pipe.fit_transform(col).toarray()
+        new_data = pd.DataFrame(
+            transformed, columns=str(col.name) + "_" + pipe.get_feature_names_out()
+        )
+        self.transformations[col.name] = pipe
+        return new_data
 
     def _update_preprocessed_data(self, new_data: pd.DataFrame) -> None:
         self.preprocessed_data = self.preprocessed_data.join(new_data, how="outer")
@@ -96,3 +118,8 @@ class DataProcessorPandas(BaseDataProcessor):
             transformed_test = transformed_test.join(transformed_col, how="outer")
 
         return transformed_test
+
+
+class ModelPandas:
+    def __init__(self) -> None:
+        pass

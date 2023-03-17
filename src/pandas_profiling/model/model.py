@@ -9,9 +9,9 @@ class BaseDataProcessor(ABC):
 
     def __init__(self) -> None:
         self.col_map = {
-            "Categorical": self.prepare_cat,
-            "Numeric": self.prepare_num,
-            "Text": self.prepare_text,
+            "Categorical": self.fit_cat,
+            "Numeric": self.fit_num,
+            "Text": self.fit_text,
         }
 
     @property
@@ -20,7 +20,7 @@ class BaseDataProcessor(ABC):
         """Preprocessed train data."""
 
     @abstractmethod
-    def prepare_num(self, col: Any, col_desc: Dict[str, Any]) -> Any:
+    def fit_num(self, col: Any, col_desc: Dict[str, Any]) -> Any:
         """Transform numeric type column.
         Save transformations to self.transformations.
 
@@ -33,7 +33,7 @@ class BaseDataProcessor(ABC):
         """
 
     @abstractmethod
-    def prepare_cat(self, col: Any, col_desc: Dict[str, Any]) -> Any:
+    def fit_cat(self, col: Any, col_desc: Dict[str, Any]) -> Any:
         """Prepare categorical column.
         Apply one-hot encoding.
         Save transformations to self.transformations.
@@ -47,7 +47,7 @@ class BaseDataProcessor(ABC):
         """
 
     @abstractmethod
-    def prepare_text(self, col: Any, col_desc: Dict[str, Any]) -> Any:
+    def fit_text(self, col: Any, col_desc: Dict[str, Any]) -> Any:
         """Prepare text column.
         Save transformations to self.transformations.
 
