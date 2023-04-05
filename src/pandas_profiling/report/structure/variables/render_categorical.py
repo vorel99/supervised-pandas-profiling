@@ -358,36 +358,49 @@ def render_categorical(config: Settings, summary: dict) -> dict:
     )
     top_items.append(info)
 
-    table = Table(
-        [
+    rows = [
+        {
+            "name": "Distinct",
+            "value": fmt(summary["n_distinct"]),
+            "alert": "n_distinct" in summary["alert_fields"],
+        },
+        {
+            "name": "Distinct (%)",
+            "value": fmt_percent(summary["p_distinct"]),
+            "alert": "p_distinct" in summary["alert_fields"],
+        },
+        {
+            "name": "Missing",
+            "value": fmt(summary["n_missing"]),
+            "alert": "n_missing" in summary["alert_fields"],
+        },
+        {
+            "name": "Missing (%)",
+            "value": fmt_percent(summary["p_missing"]),
+            "alert": "p_missing" in summary["alert_fields"],
+        },
+        {
+            "name": "Memory size",
+            "value": fmt_bytesize(summary["memory_size"]),
+            "alert": False,
+        },
+    ]
+
+    if (
+        isinstance(summary["plot_description"], CatDescriptionSupervised)
+        and "target" not in summary
+    ):
+        rows.append(
             {
-                "name": "Distinct",
-                "value": fmt(summary["n_distinct"]),
-                "alert": "n_distinct" in summary["alert_fields"],
-            },
-            {
-                "name": "Distinct (%)",
-                "value": fmt_percent(summary["p_distinct"]),
-                "alert": "p_distinct" in summary["alert_fields"],
-            },
-            {
-                "name": "Missing",
-                "value": fmt(summary["n_missing"]),
-                "alert": "n_missing" in summary["alert_fields"],
-            },
-            {
-                "name": "Missing (%)",
-                "value": fmt_percent(summary["p_missing"]),
-                "alert": "p_missing" in summary["alert_fields"],
-            },
-            {
-                "name": "Memory size",
-                "value": fmt_bytesize(summary["memory_size"]),
-                "alert": False,
-            },
-        ],
-        style=config.html.style,
-    )
+                "name": "p-value independence",
+                "value": round(
+                    summary["plot_description"].p_value,
+                    config.report.precision,
+                ),
+                "alert": summary["plot_description"].p_value < 0.05,
+            }
+        )
+    table = Table(rows, style=config.html.style)
     top_items.append(table)
 
     if "target" in summary and summary["target"]:
