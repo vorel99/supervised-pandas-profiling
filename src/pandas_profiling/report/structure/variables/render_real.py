@@ -84,11 +84,11 @@ def render_real(config: Settings, summary: dict) -> dict:
             {
                 "name": "identic mean p-value",
                 "value": round(
-                    summary["plot_description"].p_value,
+                    summary["plot_description"].p_value_of_independence,
                     config.report.precision,
                 ),
                 # TODO remove constant
-                "alert": summary["plot_description"].p_value < 0.05,
+                "alert": summary["plot_description"].p_value_of_independence < 0.05,
             }
         )
     table1 = Table(rows, style=config.html.style)

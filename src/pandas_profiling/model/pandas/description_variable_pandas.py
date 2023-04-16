@@ -204,7 +204,7 @@ class CatDescriptionSupervisedPandas(
         self.log_odds
 
     @property
-    def p_value(self) -> float:
+    def p_value_of_independence(self) -> float:
         if not hasattr(self, "_p_value_chi_sqrt_independent"):
             contingency_table = pd.crosstab(
                 self.target_description.series_binary,
@@ -361,7 +361,7 @@ class NumDescriptionSupervisedPandas(
         self.log_odds
 
     @property
-    def p_value(self) -> float:
+    def p_value_of_independence(self) -> float:
         """P value of t-test independent."""
 
         if not hasattr(self, "_p_val_mean_independent"):

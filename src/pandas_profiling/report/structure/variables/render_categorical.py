@@ -392,12 +392,12 @@ def render_categorical(config: Settings, summary: dict) -> dict:
     ):
         rows.append(
             {
-                "name": "p-value independence",
+                "name": "p-value of independence",
                 "value": round(
-                    summary["plot_description"].p_value,
+                    summary["plot_description"].p_value_of_independence,
                     config.report.precision,
                 ),
-                "alert": summary["plot_description"].p_value < 0.05,
+                "alert": summary["plot_description"].p_value_of_independence < 0.05,
             }
         )
     table = Table(rows, style=config.html.style)

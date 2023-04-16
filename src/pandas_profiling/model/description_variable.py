@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 import numpy as np
+import pandas as pd
+
 from pandas_profiling.config import Univariate
 from pandas_profiling.model.description_target import TargetDescription
-
-import pandas as pd
 
 
 @dataclass
@@ -235,7 +235,7 @@ class CatDescriptionSupervised(CatDescription, VariableDescriptionSupervised):
 
     @property
     @abstractmethod
-    def p_value(self) -> float:
+    def p_value_of_independence(self) -> float:
         """P value of independence between subpopulations.
         For numeric variables:
             p value of student t-test to compare means.
