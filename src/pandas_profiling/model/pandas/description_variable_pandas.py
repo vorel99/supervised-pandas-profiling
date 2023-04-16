@@ -373,6 +373,7 @@ class NumDescriptionSupervisedPandas(
                     self.target_description.series_binary == self.n_target_value
                 ],
                 nan_policy="omit",
+                equal_var=False,
             )
             self._p_val_mean_independent = res.pvalue
         return self._p_val_mean_independent

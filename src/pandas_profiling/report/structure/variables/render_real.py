@@ -80,15 +80,13 @@ def render_real(config: Settings, summary: dict) -> dict:
         },
     ]
     if isinstance(summary["plot_description"], CatDescriptionSupervised):
+        p_value_of_independence = summary["plot_description"].p_value_of_independence
         rows.append(
             {
                 "name": "identic mean p-value",
-                "value": round(
-                    summary["plot_description"].p_value_of_independence,
-                    config.report.precision,
-                ),
-                # TODO remove constant
-                "alert": summary["plot_description"].p_value_of_independence < 0.05,
+                "value": round(p_value_of_independence, config.report.precision),
+                "alert": p_value_of_independence
+                < (1 - config.alerts.independence_confidence_level),
             }
         )
     table1 = Table(rows, style=config.html.style)

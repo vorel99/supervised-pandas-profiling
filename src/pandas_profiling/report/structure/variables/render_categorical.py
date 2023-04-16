@@ -390,14 +390,16 @@ def render_categorical(config: Settings, summary: dict) -> dict:
         isinstance(summary["plot_description"], CatDescriptionSupervised)
         and "target" not in summary
     ):
+        p_value_of_independence = summary["plot_description"].p_value_of_independence
         rows.append(
             {
                 "name": "p-value of independence",
                 "value": round(
-                    summary["plot_description"].p_value_of_independence,
+                    p_value_of_independence,
                     config.report.precision,
                 ),
-                "alert": summary["plot_description"].p_value_of_independence < 0.05,
+                "alert": p_value_of_independence
+                < 1 - config.alerts.independence_confidence_level,
             }
         )
     table = Table(rows, style=config.html.style)
