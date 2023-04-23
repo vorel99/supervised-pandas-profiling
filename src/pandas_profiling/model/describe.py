@@ -2,10 +2,6 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-import pandas as pd
-from tqdm.auto import tqdm
-from visions import VisionsTypeset
-
 from pandas_profiling.config import Settings
 from pandas_profiling.model.alerts import get_alerts
 from pandas_profiling.model.correlations import (
@@ -21,6 +17,7 @@ from pandas_profiling.model.missing import (
     get_missing_description,
     get_missing_diagram,
 )
+from pandas_profiling.model.model import get_model_module
 from pandas_profiling.model.pairwise import get_scatter_plot, get_scatter_tasks
 from pandas_profiling.model.sample import get_custom_sample, get_sample
 from pandas_profiling.model.summarizer import BaseSummarizer
@@ -28,6 +25,10 @@ from pandas_profiling.model.summary import get_series_descriptions
 from pandas_profiling.model.table import get_table_stats
 from pandas_profiling.utils.progress_bar import progress
 from pandas_profiling.version import __version__
+from tqdm.auto import tqdm
+from visions import VisionsTypeset
+
+import pandas as pd
 
 
 def describe(
@@ -174,14 +175,19 @@ def describe(
 
         pbar.set_postfix_str("Completed")
 
-        date_end = datetime.utcnow()
+        model = None
+        if target_description:
+            # update target description and remove target from variables
+            target_description.description.update(
+                series_description[target_description.name]
+            )
+            del series_description[target_description.name]
 
-    # update target description and remove target from variables
-    if target_description:
-        target_description.description.update(
-            series_description[target_description.name]
-        )
-        del series_description[target_description.name]
+            # model module
+            if config.report.model_module:
+                model = get_model_module(config, target_description, df)
+
+        date_end = datetime.utcnow()
 
     analysis = BaseAnalysis(config.title, date_start, date_end)
 
@@ -197,5 +203,6 @@ def describe(
         package=package,
         sample=samples,
         duplicates=duplicates,
+        model=model,
     )
     return description

@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from pandas_profiling.model.description_target import TargetDescription
+from pandas_profiling.model.model import ModelModule
 
 
 @dataclass
@@ -75,3 +76,4 @@ class BaseDescription:
     package: Any
     sample: Any
     duplicates: Any
+    model: Optional[ModelModule]
