@@ -1,7 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Hashable, List
 
+import pandas as pd
 from lightgbm import LGBMClassifier
+from sklearn import metrics
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description import BaseDescription
 from pandas_profiling.model.description_target import TargetDescription
@@ -12,12 +18,6 @@ from pandas_profiling.model.model import (
     ModelModule,
     get_model_module,
 )
-from sklearn import metrics
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
-
-import pandas as pd
 
 
 class TransformerPandas(ABC):
@@ -174,6 +174,7 @@ class DataProcessorPandas(BaseDataProcessor):
 class ModelPandas(Model):
     X: pd.DataFrame
     y: pd.Series
+    model: LGBMClassifier
 
     def __init__(self, X: pd.DataFrame, y: pd.Series) -> None:
         if X.shape[0] != y.shape[0]:
@@ -188,10 +189,12 @@ class ModelPandas(Model):
         X_train, X_test, y_train, y_test = train_test_split(
             self.X, self.y, test_size=0.25, random_state=123
         )
-        model = LGBMClassifier()
-        model.fit(X_train, y_train)
+        self.model = LGBMClassifier(
+            max_depth=5, n_estimators=10, num_leaves=10, subsample_for_bin=None
+        )
+        self.model.fit(X_train, y_train)
         self.real_y = y_test
-        self.predicted_y = model.predict(X_test)
+        self.predicted_y = self.model.predict(X_test)
 
     def evaluate(self) -> ModelEvaluation:
         precision = metrics.precision_score(self.real_y, self.predicted_y)

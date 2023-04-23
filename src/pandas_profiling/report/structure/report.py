@@ -21,6 +21,7 @@ from pandas_profiling.report.presentation.core import Sample, ToggleButton, Vari
 from pandas_profiling.report.presentation.core.renderable import Renderable
 from pandas_profiling.report.presentation.core.root import Root
 from pandas_profiling.report.structure.correlations import get_correlation_items
+from pandas_profiling.report.structure.model_render import render_model_module
 from pandas_profiling.report.structure.overview import get_dataset_items
 from pandas_profiling.utils.dataframe import slugify
 from pandas_profiling.visualisation.missing import plot_confusion_matrix
@@ -497,6 +498,11 @@ def get_report_structure(config: Settings, summary: BaseDescription) -> Root:
                 )
             )
 
+        # Model
+        if config.report.model_module and summary.model is not None:
+            section_items.append(render_model_module(config, summary.model))
+
+        # Samples
         sample_items = get_sample_items(config, summary.sample)
         if len(sample_items) > 0:
             section_items.append(

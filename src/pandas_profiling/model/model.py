@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Hashable, Optional
 
 from multimethod import multimethod
+
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
 
