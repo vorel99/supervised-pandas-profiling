@@ -206,6 +206,8 @@ report:
     log_odds_on_top: False
   # limit count of variables in report
   max_vars_count: 100
+  # create model module
+  model_module: False
 
 html:
     # Minify the html

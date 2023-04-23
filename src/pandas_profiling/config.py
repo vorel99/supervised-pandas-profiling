@@ -312,6 +312,8 @@ class Report(BaseModel):
     # limit count of variables in report
     # for dataframes with 200+ columns is report unusable
     max_vars_count: Optional[int] = None
+    # create model module
+    model_module: bool = False
 
 
 class Alerts(BaseModel):
