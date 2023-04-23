@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 import numpy as np
 import pandas as pd
+
 from pandas_profiling import ProfileReport
 from pandas_profiling.model.description import BaseDescription
 
@@ -49,7 +50,7 @@ def test_example(get_data_file, test_output_dir):
     assert (test_output_dir / "profile.html").exists(), "Output file does not exist"
     assert type(profile.get_description()) == BaseDescription, "Description wrong type."
     assert (
-        len(asdict(profile.get_description()).items()) == 11
+        len(asdict(profile.get_description()).items()) == 12
     ), "Description wrong len."
     # number of asserts
     assert "<span class=badge>9</span>" in profile.to_html()
