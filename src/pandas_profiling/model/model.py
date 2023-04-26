@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from multimethod import multimethod
-
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
 
@@ -18,20 +17,32 @@ class ModelEvaluation:
     f1_score: float
     confusion_matrix: list
 
+    @property
+    def quality(self) -> float:
+        return self.accuracy + self.precision + self.recall + self.f1_score
+
 
 class Model(ABC):
     """Abstract class for models."""
 
     @abstractmethod
-    def __init__(self, X: Any, y: Any) -> None:
-        """Model creation.
-        Train and test model.
+    def __init__(self) -> None:
+        """Model creation."""
 
-        Args:
-            X (Any): Features
-            y (Any): Target
-        """
+    @abstractmethod
+    def fit(self, X, y):
         pass
+
+    @abstractmethod
+    def transform(self, X):
+        pass
+
+
+class ModelData:
+    X_train: Any
+    X_test: Any
+    y_train: Any
+    y_test: Any
 
     @abstractmethod
     def evaluate(self) -> ModelEvaluation:
@@ -44,8 +55,8 @@ class Model(ABC):
 
 @dataclass
 class ModelModule:
-    default_model: Model
-    transformed_model: Optional[Model]
+    default_model: ModelData
+    transformed_model: Optional[ModelData]
 
 
 @multimethod

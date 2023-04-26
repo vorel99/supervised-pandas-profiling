@@ -1,50 +1,58 @@
+from __future__ import annotations
+
 import pandas as pd
 from lightgbm import LGBMClassifier
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
-
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.model import (
     Model,
+    ModelData,
     ModelEvaluation,
     ModelModule,
     get_model_module,
 )
+from sklearn import metrics
+from sklearn.model_selection import train_test_split
 
 
 class ModelPandas(Model):
-    X: pd.DataFrame
-    y: pd.Series
     model: LGBMClassifier
 
-    def __init__(self, X: pd.DataFrame, y: pd.Series) -> None:
-        if X.shape[0] != y.shape[0]:
-            raise ValueError(
-                "Cannot create model, X and y data should have same length."
-            )
-        self.X = X
-        self.y = y
-        self._train()
-
-    def _train(self):
-        X_train, X_test, y_train, y_test = train_test_split(
-            self.X, self.y, test_size=0.25, random_state=123
-        )
+    def __init__(self) -> None:
         self.model = LGBMClassifier(
             max_depth=5, n_estimators=10, num_leaves=10, subsample_for_bin=None
         )
+
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+        self.model.fit(X, y)
+
+    def transform(self, X: pd.DataFrame):
+        return self.model.predict(X)
+
+
+class ModelDataPandas(ModelData):
+    model: ModelPandas
+    X_train: pd.DataFrame
+    X_test: pd.DataFrame
+    y_train: pd.Series
+    y_test: pd.Series
+
+    def __init__(self, X_train, X_test, y_train, y_test) -> None:
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
+        self.model = ModelPandas()
         self.model.fit(X_train, y_train)
-        self.real_y = y_test
-        self.predicted_y = self.model.predict(X_test)
+        self.y_pred = self.model.transform(X_test)
 
     def evaluate(self) -> ModelEvaluation:
-        precision = metrics.precision_score(self.real_y, self.predicted_y)
-        recall = metrics.recall_score(self.real_y, self.predicted_y)
-        f1 = metrics.f1_score(self.real_y, self.predicted_y)
-        accuracy = metrics.accuracy_score(self.real_y, self.predicted_y)
+        precision = metrics.precision_score(self.y_pred, self.y_pred)
+        recall = metrics.recall_score(self.y_pred, self.y_pred)
+        f1 = metrics.f1_score(self.y_pred, self.y_pred)
+        accuracy = metrics.accuracy_score(self.y_pred, self.y_pred)
 
-        conf_matrix = metrics.confusion_matrix(self.real_y, self.predicted_y)
+        conf_matrix = metrics.confusion_matrix(self.y_pred, self.y_pred)
 
         return ModelEvaluation(
             accuracy=accuracy,
@@ -53,6 +61,19 @@ class ModelPandas(Model):
             f1_score=f1,
             confusion_matrix=conf_matrix,
         )
+
+    @classmethod
+    def get_model_from_df(
+        cls,
+        target_description: TargetDescription,
+        df: pd.DataFrame,
+    ) -> ModelDataPandas:
+        X = df.drop(columns=target_description.name)
+        y = target_description.series_binary
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.25, random_state=123
+        )
+        return ModelDataPandas(X_train, X_test, y_train, y_test)
 
 
 class ModelModulePandas(ModelModule):
@@ -64,7 +85,7 @@ class ModelModulePandas(ModelModule):
     ):
         X = df.drop(columns=target_description.name)
         y = target_description.series_binary
-        self.default_model = ModelPandas(X, y)
+        self.default_model = ModelDataPandas.get_model_from_df(target_description, df)
         self.transformed_model = None
 
 
