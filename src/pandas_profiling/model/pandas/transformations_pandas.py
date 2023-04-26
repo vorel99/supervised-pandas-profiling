@@ -162,5 +162,6 @@ def get_best_transformation_pandas(
                 y_train=y_train,
                 y_test=y_test,
                 model_evaluation=model_eval,
+                transform_name=transformer.transformation_name,
             )
     return transformation

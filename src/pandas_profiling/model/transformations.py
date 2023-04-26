@@ -17,6 +17,7 @@ class TransformationData:
     X_test: Any
     y_train: Any
     y_test: Any
+    transform_name: str
     model_evaluation: ModelEvaluation
 
     def get_better(self, other: TransformationData) -> TransformationData:

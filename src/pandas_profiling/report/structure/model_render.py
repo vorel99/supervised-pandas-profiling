@@ -1,12 +1,13 @@
 from pandas_profiling.config import Settings
-from pandas_profiling.model.model import ModelData, ModelModule
+from pandas_profiling.model.model import ModelData, ModelEvaluation, ModelModule
 from pandas_profiling.report.formatters import fmt_percent
 from pandas_profiling.report.presentation.core.container import Container
 from pandas_profiling.report.presentation.core.table import Table
 
 
-def render_model_evaluation(config: Settings, model: ModelData, name: str) -> Container:
-    model_evaluation = model.evaluate()
+def render_model_evaluation(
+    config: Settings, model_evaluation: ModelEvaluation, name: str
+) -> Container:
     items = []
     table = Table(
         [
@@ -40,13 +41,15 @@ def render_model_module(config: Settings, model_module: ModelModule) -> Containe
     items = []
 
     def_model_tab = render_model_evaluation(
-        config, model_module.default_model, "Base model"
+        config, model_module.default_model.evaluate(), "Base model"
     )
     items.append(def_model_tab)
 
     if model_module.transformed_model:
         trans_model_tab = render_model_evaluation(
-            config, model_module.transformed_model, "Model with transformed data"
+            config,
+            model_module.transformed_model.evaluate(),
+            "Model with transformed data",
         )
         items.append(trans_model_tab)
 

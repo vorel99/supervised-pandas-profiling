@@ -1,0 +1,33 @@
+from typing import List
+
+from pandas_profiling.config import Settings
+from pandas_profiling.model.transformations import TransformationData
+from pandas_profiling.report.presentation.core.container import Container
+from pandas_profiling.report.structure.model_render import render_model_evaluation
+
+
+def render_transformations_module(
+    config: Settings, transformations_data: List[TransformationData]
+) -> Container:
+    items = []
+
+    for transform_data in transformations_data:
+        # model_evaluation = render_model_evaluation(
+        #     config, transform_data.model_evaluation, name=transform_data.transform_name
+        # )
+        one_transform = Container(
+            [],
+            name=transform_data.col_name,
+            sequence_type="sections",
+            full_width=config.html.full_width,
+            anchor_id="transform_tab_{}".format(transform_data.col_name),
+        )
+
+        items.append(one_transform)
+
+    return Container(
+        items,
+        name="Transformations",
+        sequence_type="tabs",
+        anchor_id="transform_module",
+    )
