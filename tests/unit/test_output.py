@@ -2,7 +2,6 @@ import json
 
 import pandas as pd
 import pytest
-
 from pandas_profiling import ProfileReport
 
 
@@ -27,7 +26,8 @@ def test_json(data: pd.DataFrame):
         "sample",
         "scatter",
         "table",
-        "model"
+        "model",
+        "transformations",
     }
 
 

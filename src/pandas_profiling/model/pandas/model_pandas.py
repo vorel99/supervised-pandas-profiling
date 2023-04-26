@@ -11,6 +11,7 @@ from pandas_profiling.model.model import (
     ModelModule,
     get_model_module,
 )
+from pandas_profiling.model.transformations import get_train_test_split
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 
@@ -68,11 +69,7 @@ class ModelDataPandas(ModelData):
         target_description: TargetDescription,
         df: pd.DataFrame,
     ) -> ModelDataPandas:
-        X = df.drop(columns=target_description.name)
-        y = target_description.series_binary
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.25, random_state=123
-        )
+        X_train, X_test, y_train, y_test = get_train_test_split(df, target_description)
         return ModelDataPandas(X_train, X_test, y_train, y_test)
 
 
