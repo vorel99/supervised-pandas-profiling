@@ -1,11 +1,11 @@
 from pandas_profiling.config import Settings
-from pandas_profiling.model.model import Model, ModelModule
+from pandas_profiling.model.model import ModelData, ModelModule
 from pandas_profiling.report.formatters import fmt_percent
 from pandas_profiling.report.presentation.core.container import Container
 from pandas_profiling.report.presentation.core.table import Table
 
 
-def render_model_evaluation(config: Settings, model: Model, name: str) -> Container:
+def render_model_evaluation(config: Settings, model: ModelData, name: str) -> Container:
     model_evaluation = model.evaluate()
     items = []
     table = Table(
