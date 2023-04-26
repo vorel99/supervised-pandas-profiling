@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import pandas as pd
 from pandas_profiling.config import Settings
 from pandas_profiling.model.alerts import get_alerts
 from pandas_profiling.model.correlations import (
@@ -23,12 +24,11 @@ from pandas_profiling.model.sample import get_custom_sample, get_sample
 from pandas_profiling.model.summarizer import BaseSummarizer
 from pandas_profiling.model.summary import get_series_descriptions
 from pandas_profiling.model.table import get_table_stats
+from pandas_profiling.model.transformations import get_transformations_module
 from pandas_profiling.utils.progress_bar import progress
 from pandas_profiling.version import __version__
 from tqdm.auto import tqdm
 from visions import VisionsTypeset
-
-import pandas as pd
 
 
 def describe(
@@ -175,6 +175,7 @@ def describe(
 
         pbar.set_postfix_str("Completed")
 
+        transformations = None
         model = None
         if target_description:
             # update target description and remove target from variables
@@ -183,9 +184,17 @@ def describe(
             )
             del series_description[target_description.name]
 
+            # transformations module
+            if config.report.transform_module:
+                transformations = get_transformations_module(
+                    config, series_description, target_description, df
+                )
+
             # model module
             if config.report.model_module:
-                model = get_model_module(config, target_description, df)
+                model = progress(get_model_module, pbar, "Get model")(
+                    config, target_description, df
+                )
 
         date_end = datetime.utcnow()
 
@@ -203,6 +212,7 @@ def describe(
         package=package,
         sample=samples,
         duplicates=duplicates,
+        transformations=transformations,
         model=model,
     )
     return description
