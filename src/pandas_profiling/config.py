@@ -314,6 +314,8 @@ class Report(BaseModel):
     max_vars_count: Optional[int] = None
     # create model module
     model_module: bool = False
+    # create transformations module
+    transform_module: bool = False
 
 
 class Alerts(BaseModel):
