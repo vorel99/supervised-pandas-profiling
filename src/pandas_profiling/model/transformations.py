@@ -15,8 +15,6 @@ class TransformationData:
     col_name: str
     X_train: Any
     X_test: Any
-    train_transformed_col: Any
-    test_transformed_col: Any
     y_train: Any
     y_test: Any
     model_evaluation: ModelEvaluation
@@ -29,6 +27,7 @@ class TransformationData:
 
 class Transformation:
     transformer: Any
+    transformation_name: str
 
     @multimethod
     def fit(self, X: Any):
@@ -38,17 +37,25 @@ class Transformation:
     def transform(self, X: Any) -> Any:
         raise NotImplementedError
 
+    def supports_nan(self) -> bool:
+        return True
+
 
 class NormalizeTransformation(Transformation):
-    pass
+    transformation_name: str = (
+        "Standardize features by removing the mean and scaling to unit variance."
+    )
 
 
 class BinningTransformation(Transformation):
-    pass
+    transformation_name: str = "Bin continuous data into intervals."
+
+    def supports_nan(self) -> bool:
+        return False
 
 
 class OneHotTransformation(Transformation):
-    pass
+    transformation_name: str = "Encode categorical features as a one-hot numeric array."
 
 
 class TfIdfTransformation(Transformation):
@@ -72,7 +79,7 @@ def get_best_transformation(
     raise NotImplementedError
 
 
-def get_transformations_map() -> Dict[List[Callable]]:
+def get_transformations_map() -> Dict[str, List[Any]]:
     """Get valid transformations for column type.
 
     Returns:
@@ -86,9 +93,9 @@ def get_transformations_map() -> Dict[List[Callable]]:
         # "Text": [
         # TfIdfTransformation,
         # ],
-        # "Categorical": [
-        # OneHotTransformation,
-        # ],
+        "Categorical": [
+            OneHotTransformation,
+        ],
     }
 
 
@@ -104,10 +111,10 @@ def get_transformations_module(
     for var_name, var_desc in variables_desc.items():
         var_type = var_desc["type"]
         if var_type in transform_map:
-            transformations.append(
-                get_best_transformation(
-                    X_train, X_test, y_train, y_test, var_name, transform_map[var_type]
-                )
+            best_transformation = get_best_transformation(
+                X_train, X_test, y_train, y_test, var_name, transform_map[var_type]
             )
+            if best_transformation is not None:
+                transformations.append(best_transformation)
 
     return transformations
