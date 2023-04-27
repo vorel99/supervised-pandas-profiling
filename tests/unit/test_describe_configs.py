@@ -16,6 +16,7 @@ def test_dataframe() -> pd.DataFrame:
 def test_describe_with_model(test_dataframe: pd.DataFrame, summarizer, typeset):
     config = Settings()
     config.report.model_module = True
+    config.target.col_name = "Survived"
     description = describe(config, test_dataframe, summarizer, typeset)
     assert description.transformations is None
 
@@ -27,6 +28,7 @@ def test_describe_with_model(test_dataframe: pd.DataFrame, summarizer, typeset):
 def test_describe_with_transforms(test_dataframe: pd.DataFrame, summarizer, typeset):
     config = Settings()
     config.report.transform_module = True
+    config.target.col_name = "Survived"
     description = describe(config, test_dataframe, summarizer, typeset)
     assert description.model is None
 
@@ -39,6 +41,7 @@ def test_describe_with_model_and_transforms(
     config = Settings()
     config.report.model_module = True
     config.report.transform_module = True
+    config.target.col_name = "Survived"
     description = describe(config, test_dataframe, summarizer, typeset)
     assert description.model is not None
     assert description.transformations is not None

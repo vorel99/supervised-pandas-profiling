@@ -176,7 +176,7 @@ def describe(
         pbar.set_postfix_str("Completed")
 
         transformations = None
-        model = None
+        model: Optional[ModelModule] = None
         if target_description:
             # update target description and remove target from variables
             target_description.description.update(
@@ -186,7 +186,7 @@ def describe(
 
             # model module
             if config.report.model_module:
-                model: ModelModule = progress(get_model_module, pbar, "Get model")(
+                model = progress(get_model_module, pbar, "Get model")(
                     config, target_description, df
                 )
 
