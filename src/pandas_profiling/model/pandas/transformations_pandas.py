@@ -1,8 +1,7 @@
-from typing import Any, Callable, Dict, Hashable, List, Optional
+from typing import Callable, List, Optional
 
 import pandas as pd
 from pandas_profiling.config import Settings
-from pandas_profiling.model.description import BaseDescription
 from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.pandas.model_pandas import ModelDataPandas
 from pandas_profiling.model.transformations import (  # Transformation,; TransformationsModule,; one_hot_transformation,; tf_idf_transformation,
@@ -15,7 +14,6 @@ from pandas_profiling.model.transformations import (  # Transformation,; Transfo
     get_best_transformation,
     get_train_test_split,
 )
-from sklearn import metrics
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, StandardScaler
@@ -135,17 +133,18 @@ def get_best_transformation_pandas(
         transformed_test = pd.concat(
             [X_test.drop(columns=col_name), transformed_test], axis=1
         )
-        model_eval = ModelDataPandas(
+        model_data = ModelDataPandas(
             config, transformed_train, transformed_test, y_train, y_test
-        ).evaluate()
+        )
         transformation = TransformationData(
             col_name=col_name,
             X_train=transformed_train,
             X_test=transformed_test,
             y_train=y_train,
             y_test=y_test,
-            model_evaluation=model_eval,
+            model_data=model_data,
             transform_name=transformer.transformation_name,
+            transform_desc=transformer.transformation_description,
         )
 
         if best_transform is None:

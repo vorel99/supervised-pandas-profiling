@@ -4,6 +4,7 @@ import pandas as pd
 from lightgbm import LGBMClassifier
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
+from pandas_profiling.model.missing import MissingConfMatrix
 from pandas_profiling.model.model import (
     Model,
     ModelData,
@@ -41,12 +42,22 @@ class ModelDataPandas(ModelData):
     X_test: pd.DataFrame
     y_train: pd.Series
     y_test: pd.Series
+    model_name: str = "Gradient Boosting Decision Tree"
 
-    def __init__(self, config: Settings, X_train, X_test, y_train, y_test) -> None:
+    def __init__(
+        self,
+        config: Settings,
+        X_train: pd.DataFrame,
+        X_test: pd.DataFrame,
+        y_train: pd.Series,
+        y_test: pd.Series,
+    ) -> None:
         self.X_train = X_train
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
+        self.train_records = X_train.shape[0]
+        self.test_records = X_test.shape[0]
         self.model = ModelPandas(config.model_seed)
         self.model.fit(X_train, y_train)
         self.y_pred = self.model.transform(X_test)
@@ -57,7 +68,21 @@ class ModelDataPandas(ModelData):
         f1 = metrics.f1_score(self.y_pred, self.y_test)
         accuracy = metrics.accuracy_score(self.y_pred, self.y_test)
 
-        conf_matrix = metrics.confusion_matrix(self.y_pred, self.y_test)
+        # conf_matrix = metrics.confusion_matrix(self.y_pred, self.y_test)
+        conf_matrix = pd.crosstab(
+            self.y_test,
+            self.y_pred,
+            rownames=["Actual value"],
+            colnames=["Predicted value"],
+        )
+        conf_matrix_relative = pd.crosstab(
+            self.y_test,
+            self.y_pred,
+            rownames=["Actual value"],
+            colnames=["Predicted value"],
+            normalize="index",
+        )
+        conf_matrix = MissingConfMatrix(conf_matrix, conf_matrix_relative)
 
         return ModelEvaluation(
             accuracy=float(accuracy),

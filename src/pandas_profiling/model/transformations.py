@@ -18,10 +18,13 @@ class TransformationData:
     y_train: Any
     y_test: Any
     transform_name: str
-    model_evaluation: ModelEvaluation
+    transform_desc: str
+    model_data: ModelData
 
     def get_better(self, other: TransformationData) -> TransformationData:
-        if self.model_evaluation.quality > other.model_evaluation.quality:
+        model_evaluation = self.model_data.evaluate()
+        model_evaluation_other = other.model_data.evaluate()
+        if model_evaluation.quality > model_evaluation_other.quality:
             return self
         return other
 
@@ -56,7 +59,9 @@ class NormalizeTransformation(Transformation):
 
 class BinningTransformation(Transformation):
     transformation_name: str = "Binning"
-    transformation_description: str = "Bin continuous data into intervals."
+    transformation_description: str = (
+        "Bin continuous data into intervals with equal frequency."
+    )
 
     def supports_nan(self) -> bool:
         return False
@@ -70,7 +75,7 @@ class OneHotTransformation(Transformation):
 
 
 class TfIdfTransformation(Transformation):
-    transformation_name: str = "Tf Idf"
+    transformation_name: str = "TfIdf"
     transformation_description: str = (
         "Convert a collection of raw documents to a matrix of TF-IDF features."
     )
@@ -146,7 +151,7 @@ def get_transformations_module(
                 if (
                     base_model is not None
                     and base_model.evaluate().quality
-                    >= best_transformation.model_evaluation.quality
+                    >= best_transformation.model_data.evaluate().quality
                 ):
                     continue
                 transformations.append(best_transformation)

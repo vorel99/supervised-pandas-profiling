@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Optional
 
+import pandas as pd
 from multimethod import multimethod
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
+from pandas_profiling.model.missing import MissingConfMatrix
 
 
 @dataclass
@@ -15,7 +17,7 @@ class ModelEvaluation:
     precision: float
     recall: float
     f1_score: float
-    confusion_matrix: list
+    confusion_matrix: MissingConfMatrix
 
     @property
     def quality(self) -> float:
@@ -43,6 +45,12 @@ class ModelData:
     X_test: Any
     y_train: Any
     y_test: Any
+
+    train_records: int
+    test_records: int
+    n_of_features: int
+
+    model_name: str
 
     @abstractmethod
     def evaluate(self) -> ModelEvaluation:
