@@ -393,6 +393,8 @@ class Settings(BaseSettings):
     n_freq_table_max: int = 10
     n_extreme_obs: int = 10
 
+    model_seed: int = 123456
+
     # Report rendering
     report: Report = Report()
     html: Html = Html()
