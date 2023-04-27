@@ -18,7 +18,7 @@ from pandas_profiling.model.missing import (
     get_missing_description,
     get_missing_diagram,
 )
-from pandas_profiling.model.model import get_model_module
+from pandas_profiling.model.model import ModelModule, get_model_module
 from pandas_profiling.model.pairwise import get_scatter_plot, get_scatter_tasks
 from pandas_profiling.model.sample import get_custom_sample, get_sample
 from pandas_profiling.model.summarizer import BaseSummarizer
@@ -184,17 +184,21 @@ def describe(
             )
             del series_description[target_description.name]
 
-            # transformations module
-            if config.report.transform_module:
-                transformations = get_transformations_module(
-                    config, series_description, target_description, df
-                )
-
             # model module
             if config.report.model_module:
-                model = progress(get_model_module, pbar, "Get model")(
+                model: ModelModule = progress(get_model_module, pbar, "Get model")(
                     config, target_description, df
                 )
+
+            # transformations module
+            if config.report.transform_module:
+                base_model = None
+                if model is not None:
+                    base_model = model.default_model
+
+                transformations = progress(
+                    get_transformations_module, pbar, "Get transformations"
+                )(config, series_description, target_description, df, base_model)
 
         date_end = datetime.utcnow()
 

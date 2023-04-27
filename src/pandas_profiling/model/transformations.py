@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Hashable, List, Optional
 from multimethod import multimethod
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
-from pandas_profiling.model.model import ModelEvaluation
+from pandas_profiling.model.model import ModelData, ModelEvaluation
 
 
 @dataclass
@@ -29,6 +29,11 @@ class TransformationData:
 class Transformation:
     transformer: Any
     transformation_name: str
+    transformation_description: str
+    seed: int
+
+    def __init__(self, seed) -> None:
+        self.seed = seed
 
     @multimethod
     def fit(self, X: Any):
@@ -43,33 +48,43 @@ class Transformation:
 
 
 class NormalizeTransformation(Transformation):
-    transformation_name: str = (
+    transformation_name: str = "Normalize"
+    transformation_description: str = (
         "Standardize features by removing the mean and scaling to unit variance."
     )
 
 
 class BinningTransformation(Transformation):
-    transformation_name: str = "Bin continuous data into intervals."
+    transformation_name: str = "Binning"
+    transformation_description: str = "Bin continuous data into intervals."
 
     def supports_nan(self) -> bool:
         return False
 
 
 class OneHotTransformation(Transformation):
-    transformation_name: str = "Encode categorical features as a one-hot numeric array."
+    transformation_name: str = "One Hot Encoding"
+    transformation_description: str = (
+        "Encode categorical features as a one-hot numeric array."
+    )
 
 
 class TfIdfTransformation(Transformation):
-    pass
+    transformation_name: str = "Tf Idf"
+    transformation_description: str = (
+        "Convert a collection of raw documents to a matrix of TF-IDF features."
+    )
+    significant_words: List[str]
 
 
 @multimethod
-def get_train_test_split(df: Any, target_description: TargetDescription):
+def get_train_test_split(seed: int, df: Any, target_description: TargetDescription):
     raise NotImplementedError
 
 
 @multimethod
 def get_best_transformation(
+    config: Settings,
     X_train: Any,
     X_test: Any,
     y_train: Any,
@@ -105,17 +120,32 @@ def get_transformations_module(
     variables_desc: Dict[str, Any],
     target_desc: TargetDescription,
     df: Any,
+    base_model: Optional[ModelData],
 ) -> List[TransformationData]:
     transformations = []
     transform_map = get_transformations_map()
-    X_train, X_test, y_train, y_test = get_train_test_split(df, target_desc)
+    X_train, X_test, y_train, y_test = get_train_test_split(
+        config.model_seed, df, target_desc
+    )
     for var_name, var_desc in variables_desc.items():
         var_type = var_desc["type"]
         if var_type in transform_map:
-            best_transformation = get_best_transformation(
-                X_train, X_test, y_train, y_test, var_name, transform_map[var_type]
+            best_transformation: Optional[TransformationData] = get_best_transformation(
+                config,
+                X_train,
+                X_test,
+                y_train,
+                y_test,
+                var_name,
+                transform_map[var_type],
             )
             if best_transformation is not None:
+                if (
+                    base_model is not None
+                    and base_model.evaluate().quality
+                    >= best_transformation.model_evaluation.quality
+                ):
+                    continue
                 transformations.append(best_transformation)
 
     return transformations

@@ -19,9 +19,13 @@ from sklearn.model_selection import train_test_split
 class ModelPandas(Model):
     model: LGBMClassifier
 
-    def __init__(self) -> None:
+    def __init__(self, seed: int) -> None:
         self.model = LGBMClassifier(
-            max_depth=5, n_estimators=10, num_leaves=10, subsample_for_bin=None
+            max_depth=3,
+            n_estimators=10,
+            num_leaves=10,
+            subsample_for_bin=None,
+            random_state=seed,
         )
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
@@ -38,39 +42,42 @@ class ModelDataPandas(ModelData):
     y_train: pd.Series
     y_test: pd.Series
 
-    def __init__(self, X_train, X_test, y_train, y_test) -> None:
+    def __init__(self, config: Settings, X_train, X_test, y_train, y_test) -> None:
         self.X_train = X_train
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
-        self.model = ModelPandas()
+        self.model = ModelPandas(config.model_seed)
         self.model.fit(X_train, y_train)
         self.y_pred = self.model.transform(X_test)
 
     def evaluate(self) -> ModelEvaluation:
-        precision = metrics.precision_score(self.y_pred, self.y_pred)
-        recall = metrics.recall_score(self.y_pred, self.y_pred)
-        f1 = metrics.f1_score(self.y_pred, self.y_pred)
-        accuracy = metrics.accuracy_score(self.y_pred, self.y_pred)
+        precision = metrics.precision_score(self.y_pred, self.y_test)
+        recall = metrics.recall_score(self.y_pred, self.y_test)
+        f1 = metrics.f1_score(self.y_pred, self.y_test)
+        accuracy = metrics.accuracy_score(self.y_pred, self.y_test)
 
-        conf_matrix = metrics.confusion_matrix(self.y_pred, self.y_pred)
+        conf_matrix = metrics.confusion_matrix(self.y_pred, self.y_test)
 
         return ModelEvaluation(
-            accuracy=accuracy,
-            precision=precision,
-            recall=recall,
-            f1_score=f1,
+            accuracy=float(accuracy),
+            precision=float(precision),
+            recall=float(recall),
+            f1_score=float(f1),
             confusion_matrix=conf_matrix,
         )
 
     @classmethod
     def get_model_from_df(
         cls,
+        config: Settings,
         target_description: TargetDescription,
         df: pd.DataFrame,
     ) -> ModelDataPandas:
-        X_train, X_test, y_train, y_test = get_train_test_split(df, target_description)
-        return ModelDataPandas(X_train, X_test, y_train, y_test)
+        X_train, X_test, y_train, y_test = get_train_test_split(
+            config.model_seed, df, target_description
+        )
+        return ModelDataPandas(config, X_train, X_test, y_train, y_test)
 
 
 class ModelModulePandas(ModelModule):
@@ -80,9 +87,9 @@ class ModelModulePandas(ModelModule):
         target_description: TargetDescription,
         df: pd.DataFrame,
     ):
-        X = df.drop(columns=target_description.name)
-        y = target_description.series_binary
-        self.default_model = ModelDataPandas.get_model_from_df(target_description, df)
+        self.default_model = ModelDataPandas.get_model_from_df(
+            config, target_description, df
+        )
         self.transformed_model = None
 
 
