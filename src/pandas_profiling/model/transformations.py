@@ -76,6 +76,9 @@ class TfIdfTransformation(Transformation):
     )
     significant_words: List[str]
 
+    def supports_nan(self) -> bool:
+        return False
+
 
 @multimethod
 def get_train_test_split(seed: int, df: Any, target_description: TargetDescription):
@@ -106,9 +109,9 @@ def get_transformations_map() -> Dict[str, List[Any]]:
             NormalizeTransformation,
             BinningTransformation,
         ],
-        # "Text": [
-        # TfIdfTransformation,
-        # ],
+        "Text": [
+            TfIdfTransformation,
+        ],
         "Categorical": [
             OneHotTransformation,
         ],

@@ -24,51 +24,52 @@ from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, StandardScale
 # NormalizeTransformation ==============================================================
 # can handle nan
 @NormalizeTransformation.fit.register
-def fit_normalize_transform_pandas(self: NormalizeTransformation, X: pd.DataFrame):
+def fit_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
     self.transformer = StandardScaler()
-    self.transformer.fit(X)
+    self.transformer.fit(X.to_frame())
 
 
 @NormalizeTransformation.transform.register
-def transform_normalize_transform_pandas(
-    self: NormalizeTransformation, X: pd.DataFrame
-):
-    return pd.DataFrame(self.transformer.transform(X), index=X.index, columns=X.columns)
+def transform_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
+    return pd.DataFrame(
+        self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
+    )
 
 
 # BinningTransformation ================================================================
 # cannot handle nan
 @BinningTransformation.fit.register
-def fit_binning_transform_pandas(self: BinningTransformation, X: pd.DataFrame):
+def fit_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
     self.transformer = KBinsDiscretizer(
         encode="ordinal", strategy="quantile", random_state=self.seed
     )
-    self.transformer.fit(X)
+    self.transformer.fit(X.to_frame())
 
 
 @BinningTransformation.transform.register
-def transform_binning_transform_pandas(self: BinningTransformation, X: pd.DataFrame):
-    return pd.DataFrame(self.transformer.transform(X), index=X.index, columns=X.columns)
+def transform_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
+    return pd.DataFrame(
+        self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
+    )
 
 
 # OneHotTransformation =================================================================
 @OneHotTransformation.fit.register
-def fit_one_hot_transform_pandas(self: OneHotTransformation, X: pd.DataFrame):
+def fit_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series):
     self.transformer = OneHotEncoder(handle_unknown="ignore")
-    self.transformer.fit(X)
+    self.transformer.fit(X.to_frame())
 
 
 @OneHotTransformation.transform.register
-def transform_one_hot_transform_pandas(self: OneHotTransformation, X: pd.DataFrame):
+def transform_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series):
     return pd.DataFrame(
-        self.transformer.transform(X).toarray(),
-        index=X.index,
-    ).add_prefix("{}_".format(X.columns[0]))
+        self.transformer.transform(X.to_frame()).toarray(), index=X.index
+    ).add_prefix("{}_".format(X.name))
 
 
 # TfIdfTransformation ==================================================================
 @TfIdfTransformation.fit.register
-def fit_otf_idf_transform_pandas(self: TfIdfTransformation, X: pd.DataFrame):
+def fit_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
     self.transformer = TfidfVectorizer(token_pattern=r"(?u)\b[\w\./]+\b")
     # text_logodds: pd.DataFrame = col_desc["plot_description"].log_odds
     # # TODO replace constant .5
@@ -81,11 +82,13 @@ def fit_otf_idf_transform_pandas(self: TfIdfTransformation, X: pd.DataFrame):
 
 
 @TfIdfTransformation.transform.register
-def transform_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.DataFrame):
+def transform_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
     transformed = self.transformer.transform(X).toarray()
-    data = pd.DataFrame(transformed, columns=self.transformer.get_feature_names_out())
+    data = pd.DataFrame(
+        transformed, index=X.index, columns=self.transformer.get_feature_names_out()
+    )
     # data = data[self.significant_words]
-    return data.add_prefix("{}_".format(X.columns[0]))
+    return data.add_prefix("{}_".format(X.name))
 
 
 @get_train_test_split.register
@@ -119,12 +122,12 @@ def get_best_transformation_pandas(
         transformer: Transformation = transform_class(config.model_seed)
         # if data contains nan and transformation doesn't support nan, skip
         if (
-            X_train.isnull().values.any() or X_test.isnull().values.any()
+            X_train[col_name].isnull().any() or X_test[col_name].isnull().any()
         ) and not transformer.supports_nan():
             continue
-        transformer.fit(X_train[col_name].to_frame())
-        transformed_train = transformer.transform(X_train[col_name].to_frame())
-        transformed_test = transformer.transform(X_test[col_name].to_frame())
+        transformer.fit(X_train[col_name])
+        transformed_train = transformer.transform(X_train[col_name])
+        transformed_test = transformer.transform(X_test[col_name])
 
         transformed_train = pd.concat(
             [X_train.drop(columns=col_name), transformed_train], axis=1
