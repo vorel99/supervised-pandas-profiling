@@ -20,38 +20,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, StandardScaler
 
-# class TfIdfTransformerPandas(TransformationPandas):
-#     """Transformer for category type variables.
-#     - use tf-idf transformation
-#     """
-
-#     transformer: TfidfVectorizer
-#     significant_words: List[str]
-
-#     def __init__(self) -> None:
-#         self.transformer = TfidfVectorizer(token_pattern=r"(?u)\b[\w\./]+\b")
-
-#     def _add_prefix(self, df: pd.DataFrame, name: str) -> pd.DataFrame:
-#         return df.add_prefix(name + "_")
-
-#     def fit(self, col: pd.Series, col_desc: Dict[str, Any]) -> None:
-#         text_logodds: pd.DataFrame = col_desc["plot_description"].log_odds
-#         # TODO replace constant .5
-#         self.significant_words = text_logodds[
-#             text_logodds["log_odds_ratio"].abs() > 0.5
-#         ].index.to_list()
-
-#         # get tf-idf matrix of words
-#         self.transformer.fit(col.values.astype(str))
-
-#     def transform(self, col: pd.Series, col_desc: Dict[str, Any]) -> pd.DataFrame:
-#         transformed = self.transformer.transform(col.values.astype(str)).toarray()
-#         data = pd.DataFrame(
-#             transformed, columns=self.transformer.get_feature_names_out()
-#         )
-#         data = data[self.significant_words]
-#         return self._add_prefix(data, col.name)
-
 
 # NormalizeTransformation ==============================================================
 # can handle nan
