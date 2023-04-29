@@ -5,6 +5,10 @@ import pandas as pd
 
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
+from pandas_profiling.model.pandas.description_variable_pandas import (
+    NumDescriptionPandas,
+    NumDescriptionSupervisedPandas,
+)
 from pandas_profiling.model.summary_algorithms import (
     chi_square,
     describe_date_1d,
@@ -42,10 +46,22 @@ def pandas_describe_date_1d(
 
     summary["range"] = summary["max"] - summary["min"]
 
-    values = series.values.astype(np.int64) // 10**9
+    values = pd.to_datetime(series).astype(np.int64) // 10**9
 
     if config.vars.num.chi_squared_threshold > 0.0:
         summary["chi_squared"] = chi_square(values)
 
     summary.update(histogram_compute(config, values, summary["n_distinct"]))
+
+    if target_description is None:
+        plot_bins = config.plot.histogram.bins
+        summary["plot_description"] = NumDescriptionPandas(
+            config.vars, values, plot_bins
+        )
+    else:
+        plot_bins = config.plot.histogram.bins_supervised
+        summary["plot_description"] = NumDescriptionSupervisedPandas(
+            config.vars, values, plot_bins, target_description
+        )
+
     return config, values, summary, target_description
