@@ -294,20 +294,11 @@ def render_real(config: Settings, summary: dict) -> dict:
     else:
         plots = [distribution]
 
-    hist = Image(
-        hist_data,
-        image_format=image_format,
-        alt="Histogram",
-        caption=hist_caption,
-        name="Histogram",
-        anchor_id=f"{varid}histogram",
-    )
-
-    hist2 = Container(
+    hist = Container(
         plots,
         sequence_type="grid",
-        name="Histogram2",
-        anchor_id=f"{varid}histogram2",
+        name="Histogram",
+        anchor_id=f"{varid}histogram",
     )
 
     fq = FrequencyTable(
@@ -338,7 +329,7 @@ def render_real(config: Settings, summary: dict) -> dict:
     )
 
     template_variables["bottom"] = Container(
-        [statistics, hist, hist2, fq, evs],
+        [statistics, hist, fq, evs],
         sequence_type="tabs",
         anchor_id=f"{varid}bottom",
     )
