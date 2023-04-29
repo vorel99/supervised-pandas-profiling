@@ -54,12 +54,23 @@ class Transformation:
     def supports_nan(self) -> bool:
         return True
 
+    def supports_negative(self) -> bool:
+        return True
+
 
 class NormalizeTransformation(Transformation):
     transformation_name: str = "Normalize"
     transformation_description: str = (
         "Standardize features by removing the mean and scaling to unit variance."
     )
+
+
+class LogTransformation(Transformation):
+    transformation_name: str = "Log2"
+    transformation_description: str = "Transform data with log transformation on data."
+
+    def supports_negative(self) -> bool:
+        return False
 
 
 class BinningTransformation(Transformation):
@@ -99,7 +110,7 @@ def get_best_transformation(
     y_test: Any,
     col_name: str,
     transformations: List[Callable],
-) -> TransformationData:
+) -> Optional[TransformationData]:
     raise NotImplementedError
 
 
@@ -113,6 +124,7 @@ def get_transformations_map() -> Dict[str, List[Any]]:
         "Numeric": [
             NormalizeTransformation,
             BinningTransformation,
+            LogTransformation,
         ],
         "Text": [
             TfIdfTransformation,
@@ -158,5 +170,9 @@ def get_transformations_module(
                     if base_metric >= transform_metric:
                         continue
                 transformations.append(best_transformation)
-
+    # order transformations by evaluation metric
+    transformations.sort(
+        key=lambda x: x.model_data.evaluate().get_evaluation_metric(config),
+        reverse=True,
+    )
     return transformations

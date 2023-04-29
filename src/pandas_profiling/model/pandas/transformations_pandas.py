@@ -1,15 +1,21 @@
 from typing import Callable, List, Optional
 
+import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import (
+    FunctionTransformer,
+    KBinsDiscretizer,
+    OneHotEncoder,
+    StandardScaler,
+)
 
 from pandas_profiling.config import Settings
-from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.pandas.model_pandas import ModelDataPandas
-from pandas_profiling.model.transformations import (  # Transformation,; TransformationsModule,; one_hot_transformation,; tf_idf_transformation,
+from pandas_profiling.model.transformations import (
     BinningTransformation,
+    LogTransformation,
     NormalizeTransformation,
     OneHotTransformation,
     TfIdfTransformation,
@@ -29,6 +35,22 @@ def fit_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
 
 @NormalizeTransformation.transform.register
 def transform_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
+    return pd.DataFrame(
+        self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
+    )
+
+
+# LogTransformation ================================================================
+# cannot handle negative
+@LogTransformation.fit.register
+def fit_log_transform_pandas(self: LogTransformation, X: pd.Series):
+    transformer = FunctionTransformer(np.log1p)
+    self.transformer = transformer
+    self.transformer.fit(X.to_frame())
+
+
+@LogTransformation.transform.register
+def transform_log_transform_pandas(self: LogTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
     )
@@ -60,15 +82,21 @@ def fit_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series):
 
 @OneHotTransformation.transform.register
 def transform_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series):
+    out_features = [str(item) for item in self.transformer.get_feature_names_out()]
+
     return pd.DataFrame(
-        self.transformer.transform(X.to_frame()).toarray(), index=X.index
-    ).add_prefix("{}_".format(X.name))
+        self.transformer.transform(X.to_frame()).toarray(),
+        index=X.index,
+        columns=out_features,
+    )
 
 
 # TfIdfTransformation ==================================================================
 @TfIdfTransformation.fit.register
 def fit_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
-    self.transformer = TfidfVectorizer(token_pattern=r"(?u)\b[\w\./]+\b")
+    self.transformer = TfidfVectorizer(
+        token_pattern=r"(?u)\b[\w\./]+\b", stop_words="english", max_features=50
+    )
     # text_logodds: pd.DataFrame = col_desc["plot_description"].log_odds
     # # TODO replace constant .5
     # self.significant_words = text_logodds[
@@ -82,9 +110,8 @@ def fit_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
 @TfIdfTransformation.transform.register
 def transform_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
     transformed = self.transformer.transform(X).toarray()
-    data = pd.DataFrame(
-        transformed, index=X.index, columns=self.transformer.get_feature_names_out()
-    )
+    out_features = [str(item) for item in self.transformer.get_feature_names_out()]
+    data = pd.DataFrame(transformed, index=X.index, columns=out_features)
     # data = data[self.significant_words]
     return data.add_prefix("{}_".format(X.name))
 
@@ -103,14 +130,23 @@ def get_best_transformation_pandas(
 
     for transform_class in transformations:
         transformer: Transformation = transform_class(config.model.model_seed)
+        train_col = X_train[col_name]
+        test_col = X_test[col_name]
         # if data contains nan and transformation doesn't support nan, skip
         if (
-            X_train[col_name].isnull().any() or X_test[col_name].isnull().any()
+            train_col.isnull().any() or test_col.isnull().any()
         ) and not transformer.supports_nan():
             continue
-        transformer.fit(X_train[col_name])
-        transformed_train = transformer.transform(X_train[col_name])
-        transformed_test = transformer.transform(X_test[col_name])
+        # if data contains negative values and transformation doesn't support negative
+        if (
+            is_numeric_dtype(train_col)
+            and (any(train_col < 0) or any(test_col < 0))
+            and not transformer.supports_negative()
+        ):
+            continue
+        transformer.fit(train_col)
+        transformed_train = transformer.transform(train_col)
+        transformed_test = transformer.transform(test_col)
 
         transformed_train = pd.concat(
             [X_train.drop(columns=col_name), transformed_train], axis=1
