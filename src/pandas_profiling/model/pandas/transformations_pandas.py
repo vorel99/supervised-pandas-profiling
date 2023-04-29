@@ -60,9 +60,13 @@ def fit_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series):
 
 @OneHotTransformation.transform.register
 def transform_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series):
+    out_features = [str(item) for item in self.transformer.get_feature_names_out()]
+
     return pd.DataFrame(
-        self.transformer.transform(X.to_frame()).toarray(), index=X.index
-    ).add_prefix("{}_".format(X.name))
+        self.transformer.transform(X.to_frame()).toarray(),
+        index=X.index,
+        columns=out_features,
+    )
 
 
 # TfIdfTransformation ==================================================================
@@ -82,9 +86,8 @@ def fit_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
 @TfIdfTransformation.transform.register
 def transform_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
     transformed = self.transformer.transform(X).toarray()
-    data = pd.DataFrame(
-        transformed, index=X.index, columns=self.transformer.get_feature_names_out()
-    )
+    out_features = [str(item) for item in self.transformer.get_feature_names_out()]
+    data = pd.DataFrame(transformed, index=X.index, columns=out_features)
     # data = data[self.significant_words]
     return data.add_prefix("{}_".format(X.name))
 
