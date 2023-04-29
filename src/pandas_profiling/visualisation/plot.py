@@ -12,6 +12,12 @@ from matplotlib.collections import PolyCollection
 from matplotlib.colors import Colormap, LinearSegmentedColormap, ListedColormap, rgb2hex
 from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
+from PIL import ImageColor
+from seaborn._core.plot import Plotter
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from typeguard import typechecked
+from wordcloud import WordCloud
+
 from pandas_profiling.config import Settings
 from pandas_profiling.model.data import ConfMatrixData
 from pandas_profiling.model.description_variable import (
@@ -23,11 +29,6 @@ from pandas_profiling.model.description_variable import (
 from pandas_profiling.utils.common import convert_timestamp_to_datetime
 from pandas_profiling.visualisation.context import manage_matplotlib_context
 from pandas_profiling.visualisation.utils import plot_360_n0sc0pe
-from PIL import ImageColor
-from seaborn._core.plot import Plotter
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-from typeguard import typechecked
-from wordcloud import WordCloud
 
 FIG_SIZE = (6, 4)
 MINI_FIG_SIZE = (3, 2.25)
@@ -189,7 +190,7 @@ def _plot_cat_dist_unsupervised(
 
 
 def _plot_hist_log_odds_ratio(
-    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool
+    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool, date: bool
 ) -> Plotter:
     """Create log2 odds ratio graph for numeric variable.
 
@@ -204,9 +205,15 @@ def _plot_hist_log_odds_ratio(
     """
     color = config.html.style.primary_colors[2]
 
+    log_odds = desc_plot.log_odds
+    if date:
+        log_odds[desc_plot.data_col_name] = pd.to_datetime(
+            log_odds[desc_plot.data_col_name], unit="s"
+        )
+
     p = (
         so.Plot(
-            desc_plot.log_odds,
+            log_odds,
             x=desc_plot.data_col_name,
             y=desc_plot.log_odds_col_name,
         )
@@ -221,7 +228,8 @@ def _plot_hist_log_odds_ratio(
         )
     )
     p = p.scale(y=so.Continuous().tick(count=0)).theme({"axes.facecolor": "w"})
-
+    if not date:
+        p = p.scale(x=so.Continuous().tick().label(unit=""))
     if mini:
         p = p.layout(size=MINI_FIG_SIZE).label(title="", x="", y="")
     else:
@@ -231,9 +239,7 @@ def _plot_hist_log_odds_ratio(
 
 
 def _plot_hist_dist_supervised(
-    config: Settings,
-    desc_plot: CatDescriptionSupervised,
-    mini: bool,
+    config: Settings, desc_plot: CatDescriptionSupervised, mini: bool, date: bool
 ):
     """Plot distribution of numeric supervised variable.
 
@@ -246,13 +252,19 @@ def _plot_hist_dist_supervised(
     Returns:
         Plotter: Generated plot.
     """
+    distribution = desc_plot.distribution
+    if date:
+        distribution[desc_plot.data_col_name] = pd.to_datetime(
+            distribution[desc_plot.data_col_name], unit="s"
+        )
+
     color_palette = {
         desc_plot.p_target_value: config.html.style.primary_colors[1],
         desc_plot.n_target_value: config.html.style.primary_color,
     }
     p = (
         so.Plot(
-            desc_plot.distribution,
+            distribution,
             x=desc_plot.data_col_name,
             y=desc_plot.count_col_name,
             color=desc_plot.target_col_name,
@@ -264,11 +276,11 @@ def _plot_hist_dist_supervised(
         )
         .scale(
             color=color_palette,
-            x=so.Continuous().tick().label(unit=""),
         )
         .theme({"axes.facecolor": "w"})
     )
-
+    if not date:
+        p = p.scale(x=so.Continuous().tick().label(unit=""))
     if mini:
         p = (
             p.layout(size=MINI_FIG_SIZE)
@@ -285,6 +297,7 @@ def _plot_hist_dist_unsupervised(
     config: Settings,
     desc_plot: Union[CatDescriptionSupervised, CatDescription],
     mini: bool,
+    date: bool,
 ) -> Plotter:
     """Plot distribution of numeric variable.
 
@@ -297,17 +310,23 @@ def _plot_hist_dist_unsupervised(
     Returns:
         Plotter: Generated plot.
     """
+    distribution = desc_plot.distribution
+    if date:
+        distribution[desc_plot.data_col_name] = pd.to_datetime(
+            distribution[desc_plot.data_col_name], unit="s"
+        )
+
     p = (
         so.Plot(
-            desc_plot.distribution,
+            distribution,
             x=desc_plot.data_col_name,
             y=desc_plot.count_col_name,
         )
         .add(so.Bars(alpha=1, color=config.html.style.primary_color))
-        .scale(x=so.Continuous().tick().label(unit=""))
         .theme({"axes.facecolor": "w"})
     )
-
+    if not date:
+        p = p.scale(x=so.Continuous().tick().label(unit=""))
     if mini:
         p = (
             p.layout(size=MINI_FIG_SIZE)
@@ -479,21 +498,29 @@ def plot_hist_dist(
     config: Settings,
     plot_description: Union[CatDescriptionSupervised, CatDescription],
     mini: bool = False,
+    date: bool = False,
 ) -> str:
     """Plot histogram for continuos data."""
     if isinstance(plot_description, CatDescriptionSupervised):
-        _plot_hist_dist_supervised(config, plot_description, mini)
+        _plot_hist_dist_supervised(config, plot_description, mini, date)
     else:
-        _plot_hist_dist_unsupervised(config, plot_description, mini)
+        _plot_hist_dist_unsupervised(config, plot_description, mini, date)
+    if date:
+        plt.xticks(rotation=45)
     return plot_360_n0sc0pe(config)
 
 
 @manage_matplotlib_context()
 def plot_hist_log_odds(
-    config: Settings, plot_description: CatDescriptionSupervised, mini: bool = False
+    config: Settings,
+    plot_description: CatDescriptionSupervised,
+    mini: bool = False,
+    date: bool = False,
 ) -> str:
     """Plot continuous log odds graph."""
-    _plot_hist_log_odds_ratio(config, plot_description, mini)
+    _plot_hist_log_odds_ratio(config, plot_description, mini, date)
+    if date:
+        plt.xticks(rotation=45)
     return plot_360_n0sc0pe(config)
 
 
