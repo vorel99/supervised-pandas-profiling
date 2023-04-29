@@ -45,9 +45,34 @@ def _get_model_setting_table(config: Settings, model_data: ModelData):
                 "value": model_data.model_source,
             },
             {
+                "name": "Boosting type",
+                "value": model_data.boosting_type,
+            },
+            {
+                "name": "Maximum tree depth",
+                "value": fmt_number(config.model.max_depth),
+            },
+            {
+                "name": "Number of boosted trees",
+                "value": fmt_number(config.model.n_estimators),
+            },
+            {
+                "name": "Maximum tree leaves",
+                "value": fmt_number(config.model.num_leaves),
+            },
+            {
                 "name": "Model seed",
                 "value": fmt_number(config.model.model_seed),
             },
+        ],
+        style=config.html.style,
+        name="Model setting",
+    )
+
+
+def _get_train_test_setting_table(config: Settings, model_data: ModelData):
+    return Table(
+        [
             {
                 "name": "Train test split policy",
                 "value": model_data.train_test_split_policy,
@@ -66,7 +91,26 @@ def _get_model_setting_table(config: Settings, model_data: ModelData):
             },
         ],
         style=config.html.style,
-        name="Model setting",
+        name="Train test setting",
+    )
+
+
+def _get_feature_importances(config: Settings, model_data: ModelData):
+    records = []
+    for importnace, feature in model_data.get_feature_importances():
+        if importnace == 0:
+            break
+        records.append(
+            {
+                "name": feature,
+                "value": fmt_number(importnace),
+            }
+        )
+
+    return Table(
+        records,
+        style=config.html.style,
+        name="Feature importances",
     )
 
 
@@ -83,11 +127,7 @@ def render_model(config: Settings, model_data: ModelData, name: str) -> Containe
     """
     model_evaluation = model_data.evaluate()
 
-    items = []
-
-    items.append(_get_model_setting_table(config, model_data))
-    items.append(_get_evaluation_table(config, model_evaluation))
-
+    evaluation_tab = _get_evaluation_table(config, model_evaluation)
     conf_matrix = Image(
         plot_conf_matrix(config, model_evaluation.confusion_matrix),
         image_format=config.plot.image_format,
@@ -95,12 +135,29 @@ def render_model(config: Settings, model_data: ModelData, name: str) -> Containe
         anchor_id="{}_predict_conf_matrix".format(name),
         name=name,
     )
-    items.append(conf_matrix)
+    top_section = Container(
+        [evaluation_tab, conf_matrix],
+        sequence_type="grid",
+        name="Model info top",
+    )
+
+    bottom_items = []
+    bottom_items.append(_get_model_setting_table(config, model_data))
+    bottom_items.append(_get_train_test_setting_table(config, model_data))
+    bottom_items.append(_get_feature_importances(config, model_data))
+    bottom_section = Container(
+        bottom_items,
+        sequence_type="batch_grid",
+        name="Model info bottom",
+        batch_size=len(bottom_items),
+        titles=False,
+    )
 
     return Container(
-        items,
-        sequence_type="grid",
+        [top_section, bottom_section],
+        sequence_type="list",
         name="Model info",
+        anchor_id="{}_model".format(name),
     )
 
 
@@ -108,14 +165,7 @@ def render_model_module(config: Settings, model_module: ModelModule) -> Containe
     items = []
 
     def_model_tab = render_model(config, model_module.default_model, "Base model")
-    items.append(
-        Container(
-            [def_model_tab],
-            name="Base model",
-            sequence_type="list",
-            anchor_id="model_tab_base_model",
-        )
-    )
+    items.append(def_model_tab)
 
     if model_module.transformed_model:
         trans_model_tab = render_model(

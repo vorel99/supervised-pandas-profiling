@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, List, Optional, Tuple
 
 from multimethod import multimethod
 
@@ -54,7 +54,7 @@ class Model(ABC):
         pass
 
 
-class ModelData:
+class ModelData(ABC):
     X_train: Any
     X_test: Any
     y_train: Any
@@ -65,7 +65,7 @@ class ModelData:
     test_records: int
     n_of_features: int
 
-    model_name: str
+    boosting_type: str
     model_source: str
 
     @abstractmethod
@@ -74,6 +74,14 @@ class ModelData:
 
         Returns:
             ModelEvaluation: evaluation of model
+        """
+
+    @abstractmethod
+    def get_feature_importances() -> List[Tuple[float, str]]:
+        """Get feature importances for model training.
+
+        Returns:
+            Tuple[float, str]: Tuple of feature  importances and feature names.
         """
 
 
