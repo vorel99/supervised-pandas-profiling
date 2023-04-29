@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Set, Union
 
 import numpy as np
 import pandas as pd
+
 from pandas_profiling.config import Settings
 from pandas_profiling.model.correlations import perform_check_correlation
 from pandas_profiling.model.data import ConfMatrixData
@@ -399,7 +400,7 @@ def check_variable_alerts(config: Settings, col: str, description: dict) -> List
     else:
         alerts += supported_alerts(description)
 
-        if description["type"] == "Categorical":
+        if description["type"] in ["Categorical", "Boolean"]:
             alerts += categorical_alerts(config, description)
         if description["type"] == "Numeric":
             alerts += numeric_alerts(config, description)
