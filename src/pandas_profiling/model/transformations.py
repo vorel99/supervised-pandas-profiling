@@ -67,9 +67,7 @@ class NormalizeTransformation(Transformation):
 
 class LogTransformation(Transformation):
     transformation_name: str = "Log2"
-    transformation_description: str = (
-        "Transform feature to (0, 1000) range and log transform data."
-    )
+    transformation_description: str = "Transform data with log transformation on data."
 
     def supports_negative(self) -> bool:
         return False
