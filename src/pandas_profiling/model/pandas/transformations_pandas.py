@@ -1,15 +1,21 @@
 from typing import Callable, List, Optional
 
+import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import (
+    FunctionTransformer,
+    KBinsDiscretizer,
+    OneHotEncoder,
+    StandardScaler,
+)
 
 from pandas_profiling.config import Settings
-from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.pandas.model_pandas import ModelDataPandas
-from pandas_profiling.model.transformations import (  # Transformation,; TransformationsModule,; one_hot_transformation,; tf_idf_transformation,
+from pandas_profiling.model.transformations import (
     BinningTransformation,
+    LogTransformation,
     NormalizeTransformation,
     OneHotTransformation,
     TfIdfTransformation,
@@ -29,6 +35,22 @@ def fit_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
 
 @NormalizeTransformation.transform.register
 def transform_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
+    return pd.DataFrame(
+        self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
+    )
+
+
+# LogTransformation ================================================================
+@LogTransformation.fit.register
+def fit_log_transform_pandas(self: LogTransformation, X: pd.Series):
+    scaler = StandardScaler()
+    transformer = FunctionTransformer(np.log1p)
+    self.transformer = Pipeline([("scaler", scaler), ("transformer", transformer)])
+    self.transformer.fit(X.to_frame())
+
+
+@LogTransformation.transform.register
+def transform_log_transform_pandas(self: LogTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
     )
