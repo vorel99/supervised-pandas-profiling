@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from pandas_profiling.config import Settings
+from pandas_profiling.model.description_variable import CatDescriptionSupervised
 from pandas_profiling.report.formatters import fmt, fmt_bytesize, fmt_percent
 from pandas_profiling.report.presentation.core import (
     Container,
@@ -8,7 +9,7 @@ from pandas_profiling.report.presentation.core import (
     Table,
     VariableInfo,
 )
-from pandas_profiling.visualisation.plot import histogram, mini_histogram
+from pandas_profiling.visualisation.plot import plot_hist_dist, plot_hist_log_odds
 
 
 def render_date(config: Settings, summary: Dict[str, Any]) -> Dict[str, Any]:
@@ -17,6 +18,7 @@ def render_date(config: Settings, summary: Dict[str, Any]) -> Dict[str, Any]:
 
     image_format = config.plot.image_format
 
+    top_items = []
     # Top
     info = VariableInfo(
         summary["varid"],
@@ -26,6 +28,7 @@ def render_date(config: Settings, summary: Dict[str, Any]) -> Dict[str, Any]:
         summary["description"],
         style=config.html.style,
     )
+    top_items.append(info)
 
     table1 = Table(
         [
@@ -57,6 +60,7 @@ def render_date(config: Settings, summary: Dict[str, Any]) -> Dict[str, Any]:
         ],
         style=config.html.style,
     )
+    top_items.append(table1)
 
     table2 = Table(
         [
@@ -65,55 +69,64 @@ def render_date(config: Settings, summary: Dict[str, Any]) -> Dict[str, Any]:
         ],
         style=config.html.style,
     )
+    top_items.append(table2)
 
-    if isinstance(summary["histogram"], list):
-        mini_histo = Image(
-            mini_histogram(
-                config,
-                [x[0] for x in summary["histogram"]],
-                [x[1] for x in summary["histogram"]],
-                date=True,
-            ),
+    if config.report.vars.distribution_on_top:
+        mini_real_dist = Image(
+            plot_hist_dist(config, summary["plot_description"], mini=True, date=True),
             image_format=image_format,
             alt="Mini histogram",
         )
-    else:
-        mini_histo = Image(
-            mini_histogram(
-                config, summary["histogram"][0], summary["histogram"][1], date=True
+        top_items.append(mini_real_dist)
+
+    if config.report.vars.log_odds_on_top and isinstance(
+        summary["plot_description"], CatDescriptionSupervised
+    ):
+        mini_real_log_odds = Image(
+            plot_hist_log_odds(
+                config, summary["plot_description"], mini=True, date=True
             ),
             image_format=image_format,
-            alt="Mini histogram",
+            alt="Mini logo2dds",
         )
+        top_items.append(mini_real_log_odds)
 
-    template_variables["top"] = Container(
-        [info, table1, table2, mini_histo], sequence_type="grid"
+    template_variables["top"] = Container(top_items, sequence_type="grid")
+
+    # ==================================================================================
+
+    # distribution
+    distribution = Image(
+        plot_hist_dist(config, summary["plot_description"], date=True),
+        image_format=image_format,
+        alt="Distribution histogram",
+        name="Distribution",
     )
 
-    if isinstance(summary["histogram"], list):
-        hist_data = histogram(
-            config,
-            [x[0] for x in summary["histogram"]],
-            [x[1] for x in summary["histogram"]],
-            date=True,
+    # log odds
+    if isinstance(summary["plot_description"], CatDescriptionSupervised):
+        log_odds = Image(
+            plot_hist_log_odds(config, summary["plot_description"], date=True),
+            image_format=image_format,
+            alt="Mini histogram",
+            name="Log Odds",
+            caption="Log2 odds with Beta smoothing. alpha + beta = {}".format(
+                config.vars.base.smoothing_parameter
+            ),
         )
+        plots = [distribution, log_odds]
     else:
-        hist_data = histogram(
-            config, summary["histogram"][0], summary["histogram"][1], date=True
-        )
+        plots = [distribution]
 
+    hist = Container(
+        plots,
+        sequence_type="grid",
+        name="Histogram",
+        anchor_id=f"{varid}histogram",
+    )
     # Bottom
     bottom = Container(
-        [
-            Image(
-                hist_data,
-                image_format=image_format,
-                alt="Histogram",
-                caption=f"<strong>Histogram with fixed size bins</strong> (bins={len(summary['histogram'][1]) - 1})",
-                name="Histogram",
-                anchor_id=f"{varid}histogram",
-            )
-        ],
+        [hist],
         sequence_type="tabs",
         anchor_id=summary["varid"],
     )

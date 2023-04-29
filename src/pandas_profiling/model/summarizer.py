@@ -10,6 +10,7 @@ from pandas_profiling.model.description import BaseDescription
 from pandas_profiling.model.description_target import TargetDescription
 from pandas_profiling.model.handler import Handler
 from pandas_profiling.model.summary_algorithms import (
+    describe_boolean_1d,
     describe_categorical_1d,
     describe_counts,
     describe_date_1d,
@@ -71,7 +72,9 @@ class PandasProfilingSummarizer(BaseSummarizer):
             "Categorical": [
                 describe_categorical_1d,
             ],
-            "Boolean": [],
+            "Boolean": [
+                describe_boolean_1d,
+            ],
             "URL": [
                 describe_url_1d,
             ],
