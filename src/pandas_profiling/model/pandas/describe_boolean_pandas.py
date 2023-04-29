@@ -4,6 +4,10 @@ import pandas as pd
 
 from pandas_profiling.config import Settings
 from pandas_profiling.model.description_target import TargetDescription
+from pandas_profiling.model.pandas.description_variable_pandas import (
+    CatDescriptionPandas,
+    CatDescriptionSupervisedPandas,
+)
 from pandas_profiling.model.summary_algorithms import (
     describe_boolean_1d,
     series_hashable,
@@ -31,5 +35,17 @@ def pandas_describe_boolean_1d(
 
     value_counts = summary["value_counts_without_nan"]
     summary.update({"top": value_counts.index[0], "freq": value_counts.iloc[0]})
+
+    if target_description:
+        summary["plot_description"] = CatDescriptionSupervisedPandas(
+            config.vars,
+            series,
+            target_description,
+        )
+    else:
+        summary["plot_description"] = CatDescriptionPandas(
+            config.vars,
+            series,
+        )
 
     return config, series, summary, target_description
