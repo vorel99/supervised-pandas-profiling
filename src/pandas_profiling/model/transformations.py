@@ -54,6 +54,9 @@ class Transformation:
     def supports_nan(self) -> bool:
         return True
 
+    def supports_negative(self) -> bool:
+        return True
+
 
 class NormalizeTransformation(Transformation):
     transformation_name: str = "Normalize"
@@ -64,7 +67,12 @@ class NormalizeTransformation(Transformation):
 
 class LogTransformation(Transformation):
     transformation_name: str = "Log2"
-    transformation_description: str = "Standardize and log transform data."
+    transformation_description: str = (
+        "Transform feature to (0, 1000) range and log transform data."
+    )
+
+    def supports_negative(self) -> bool:
+        return False
 
 
 class BinningTransformation(Transformation):

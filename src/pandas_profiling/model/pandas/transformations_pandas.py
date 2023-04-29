@@ -2,8 +2,8 @@ from typing import Callable, List, Optional
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (
     FunctionTransformer,
     KBinsDiscretizer,
@@ -41,11 +41,11 @@ def transform_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Se
 
 
 # LogTransformation ================================================================
+# cannot handle negative
 @LogTransformation.fit.register
 def fit_log_transform_pandas(self: LogTransformation, X: pd.Series):
-    scaler = StandardScaler()
     transformer = FunctionTransformer(np.log1p)
-    self.transformer = Pipeline([("scaler", scaler), ("transformer", transformer)])
+    self.transformer = transformer
     self.transformer.fit(X.to_frame())
 
 
@@ -94,7 +94,9 @@ def transform_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series)
 # TfIdfTransformation ==================================================================
 @TfIdfTransformation.fit.register
 def fit_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
-    self.transformer = TfidfVectorizer(token_pattern=r"(?u)\b[\w\./]+\b")
+    self.transformer = TfidfVectorizer(
+        token_pattern=r"(?u)\b[\w\./]+\b", stop_words="english", max_features=50
+    )
     # text_logodds: pd.DataFrame = col_desc["plot_description"].log_odds
     # # TODO replace constant .5
     # self.significant_words = text_logodds[
@@ -128,14 +130,23 @@ def get_best_transformation_pandas(
 
     for transform_class in transformations:
         transformer: Transformation = transform_class(config.model.model_seed)
+        train_col = X_train[col_name]
+        test_col = X_test[col_name]
         # if data contains nan and transformation doesn't support nan, skip
         if (
-            X_train[col_name].isnull().any() or X_test[col_name].isnull().any()
+            train_col.isnull().any() or test_col.isnull().any()
         ) and not transformer.supports_nan():
             continue
-        transformer.fit(X_train[col_name])
-        transformed_train = transformer.transform(X_train[col_name])
-        transformed_test = transformer.transform(X_test[col_name])
+        # if data contains negative values and transformation doesn't support negative
+        if (
+            is_numeric_dtype(train_col)
+            and (any(train_col < 0) or any(test_col < 0))
+            and not transformer.supports_negative()
+        ):
+            continue
+        transformer.fit(train_col)
+        transformed_train = transformer.transform(train_col)
+        transformed_test = transformer.transform(test_col)
 
         transformed_train = pd.concat(
             [X_train.drop(columns=col_name), transformed_train], axis=1
