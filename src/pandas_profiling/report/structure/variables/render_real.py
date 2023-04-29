@@ -148,7 +148,7 @@ def render_real(config: Settings, summary: dict) -> dict:
         mini_real_log_odds = Image(
             plot_hist_log_odds(config, summary["plot_description"], mini=True),
             image_format=image_format,
-            alt="Mini histogram",
+            alt="Mini logo2dds",
         )
         top_items.append(mini_real_log_odds)
 
