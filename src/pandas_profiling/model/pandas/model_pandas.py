@@ -16,19 +16,19 @@ from pandas_profiling.model.model import (
     ModelData,
     ModelEvaluation,
     ModelModule,
-    get_model_module,
+    get_model_data,
     get_train_test_split,
 )
 
 
 @get_train_test_split.register
 def get_train_test_split_pandas(
-    seed: int, df: pd.DataFrame, target_description: TargetDescription, test_size: float
+    model_config: ModelConfig, df: pd.DataFrame, target_description: TargetDescription
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     X = df.drop(columns=target_description.name)
     y = target_description.series_binary
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=seed
+        X, y, test_size=model_config.test_size, random_state=model_config.model_seed
     )
     return X_train, X_test, y_train, y_test
 
@@ -46,11 +46,11 @@ class ModelPandas(Model):
         )
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
-        X = X.select_dtypes(exclude=["object"])
+        X = X.select_dtypes(include=["int", "float", "bool", "category"])
         self.model.fit(X, y)
 
     def transform(self, X: pd.DataFrame):
-        X = X.select_dtypes(exclude=["object"])
+        X = X.select_dtypes(include=["int", "float", "bool", "category"])
         return self.model.predict(X)
 
 
@@ -127,7 +127,7 @@ class ModelDataPandas(ModelData):
         df: pd.DataFrame,
     ) -> ModelDataPandas:
         X_train, X_test, y_train, y_test = get_train_test_split(
-            config.model.model_seed, df, target_description, config.model.test_size
+            config.model, df, target_description
         )
         return ModelDataPandas(config, X_train, X_test, y_train, y_test)
 
@@ -145,10 +145,12 @@ class ModelModulePandas(ModelModule):
         self.transformed_model = None
 
 
-@get_model_module.register
-def get_model_module_pandas(
+@get_model_data.register
+def get_model_data_pandas(
     config: Settings,
-    target_description: TargetDescription,
-    df: pd.DataFrame,
-) -> ModelModule:
-    return ModelModulePandas(config, target_description, df)
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_train: pd.Series,
+    y_test: pd.Series,
+) -> ModelDataPandas:
+    return ModelDataPandas(config, X_train, X_test, y_train, y_test)

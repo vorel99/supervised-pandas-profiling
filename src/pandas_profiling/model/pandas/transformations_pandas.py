@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ from pandas_profiling.model.transformations import (
     Transformation,
     TransformationData,
     get_best_transformation,
+    transform_all,
 )
 
 
@@ -37,7 +38,7 @@ def fit_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
 def transform_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
-    )
+    ).add_suffix("_norm")
 
 
 # LogTransformation ================================================================
@@ -53,7 +54,7 @@ def fit_log_transform_pandas(self: LogTransformation, X: pd.Series):
 def transform_log_transform_pandas(self: LogTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
-    )
+    ).add_suffix("_log")
 
 
 # BinningTransformation ================================================================
@@ -70,7 +71,7 @@ def fit_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
 def transform_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
-    )
+    ).add_suffix("_binned")
 
 
 # OneHotTransformation =================================================================
@@ -145,30 +146,46 @@ def get_best_transformation_pandas(
         ):
             continue
         transformer.fit(train_col)
-        transformed_train = transformer.transform(train_col)
-        transformed_test = transformer.transform(test_col)
+        transformed_train_col = transformer.transform(train_col)
+        transformed_test_col = transformer.transform(test_col)
 
         transformed_train = pd.concat(
-            [X_train.drop(columns=col_name), transformed_train], axis=1
+            [X_train.drop(columns=col_name), transformed_train_col], axis=1
         )
         transformed_test = pd.concat(
-            [X_test.drop(columns=col_name), transformed_test], axis=1
+            [X_test.drop(columns=col_name), transformed_test_col], axis=1
         )
         model_data = ModelDataPandas(
             config, transformed_train, transformed_test, y_train, y_test
         )
         transformation = TransformationData(
             col_name=col_name,
-            X_train=transformed_train,
-            X_test=transformed_test,
+            X_train_transformed=transformed_train_col,
+            X_test_transformed=transformed_test_col,
             y_train=y_train,
             y_test=y_test,
             model_data=model_data,
-            transform_name=transformer.transformation_name,
-            transform_desc=transformer.transformation_description,
+            transformer_name=transformer.transformation_name,
+            transformer_desc=transformer.transformation_description,
         )
 
         if best_transform is None:
             best_transform = transformation
         best_transform = best_transform.get_better(transformation, config)
     return best_transform
+
+
+@transform_all.register
+def transform_all_pandas(
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    transformations: List[TransformationData],
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    for transform in transformations:
+        X_train = X_train.drop(columns=[transform.col_name]).join(
+            transform.X_train_transformed
+        )
+        X_test = X_test.drop(columns=[transform.col_name]).join(
+            transform.X_test_transformed
+        )
+    return X_train, X_test

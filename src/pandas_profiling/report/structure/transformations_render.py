@@ -9,13 +9,13 @@ from pandas_profiling.report.structure.model_render import render_model
 
 def _get_transformation_info(config: Settings, transformation_data: TransformationData):
     transform_description = HTML(
-        content=transformation_data.transform_desc,
+        content=transformation_data.transformer_desc,
     )
     return Container(
         [transform_description],
-        name="Used transformation: {}".format(transformation_data.transform_name),
+        name="Used transformation: {}".format(transformation_data.transformer_name),
         sequence_type="grid",
-        anchor_id="transform_desc_{}".format(transformation_data.transform_name),
+        anchor_id="transform_desc_{}".format(transformation_data.transformer_name),
     )
 
 
@@ -41,7 +41,10 @@ def render_transformations_module(
     for transform_data in transformations_data:
         transform_info = _get_transformation_info(config, transform_data)
         model_evaluation = render_model(
-            config, transform_data.model_data, name=transform_data.transform_name
+            config,
+            transform_data.model_data,
+            name="Model info",
+            id=transform_data.col_name,
         )
         one_transform = Container(
             [transform_info, model_evaluation],
