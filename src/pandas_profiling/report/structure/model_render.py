@@ -114,7 +114,9 @@ def _get_feature_importances(config: Settings, model_data: ModelData):
     )
 
 
-def render_model(config: Settings, model_data: ModelData, name: str) -> Container:
+def render_model(
+    config: Settings, model_data: ModelData, name: str, id: str
+) -> Container:
     """Render one model information.
 
     Args:
@@ -138,7 +140,8 @@ def render_model(config: Settings, model_data: ModelData, name: str) -> Containe
     top_section = Container(
         [evaluation_tab, conf_matrix],
         sequence_type="grid",
-        name="Model info top",
+        name="Model evaluation info",
+        anchor_id="{}_model_eval_info".format(name),
     )
 
     bottom_items = []
@@ -151,20 +154,23 @@ def render_model(config: Settings, model_data: ModelData, name: str) -> Containe
         name="Model info bottom",
         batch_size=len(bottom_items),
         titles=False,
+        anchor_id="{}_model_info_bottom".format(id),
     )
 
     return Container(
         [top_section, bottom_section],
         sequence_type="list",
-        name="Model info",
-        anchor_id="{}_model".format(name),
+        name=name,
+        anchor_id="{}_model_info".format(id),
     )
 
 
 def render_model_module(config: Settings, model_module: ModelModule) -> Container:
     items = []
 
-    def_model_tab = render_model(config, model_module.default_model, "Base model")
+    def_model_tab = render_model(
+        config, model_module.default_model, "Base model", id="base_model"
+    )
     items.append(def_model_tab)
 
     if model_module.transformed_model:
@@ -172,6 +178,7 @@ def render_model_module(config: Settings, model_module: ModelModule) -> Containe
             config,
             model_module.transformed_model,
             "Model with transformed data",
+            "transformed_model",
         )
         items.append(trans_model_tab)
 

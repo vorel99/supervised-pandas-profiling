@@ -38,7 +38,7 @@ def fit_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
 def transform_normalize_transform_pandas(self: NormalizeTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
-    )
+    ).add_suffix("_norm")
 
 
 # LogTransformation ================================================================
@@ -54,7 +54,7 @@ def fit_log_transform_pandas(self: LogTransformation, X: pd.Series):
 def transform_log_transform_pandas(self: LogTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
-    )
+    ).add_suffix("_log")
 
 
 # BinningTransformation ================================================================
@@ -71,7 +71,7 @@ def fit_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
 def transform_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
     return pd.DataFrame(
         self.transformer.transform(X.to_frame()), index=X.index, columns=[X.name]
-    )
+    ).add_suffix("_binned")
 
 
 # OneHotTransformation =================================================================
