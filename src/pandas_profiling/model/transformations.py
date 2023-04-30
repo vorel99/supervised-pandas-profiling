@@ -1,25 +1,36 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
 
 from multimethod import multimethod
 
 from pandas_profiling.config import Settings
-from pandas_profiling.model.description_target import TargetDescription
-from pandas_profiling.model.model import ModelData, get_train_test_split
+from pandas_profiling.model.model import ModelData
 
 
 @dataclass
 class TransformationData:
+    """Transformation data.
+
+    Args:
+        col_name (str): Name of input column.
+        X_train_transformed (Any): Transformed input train column.
+        X_test_transformed (Any): Transformed input test column.
+        y_train: Any
+        y_test: Any
+        transformer_name (str): Name of used transformer.
+        transformer_desc (str): Description of used transformer.
+        model_data: ModelData
+    """
+
     col_name: str
-    X_train: Any
-    X_test: Any
+    X_train_transformed: Any
+    X_test_transformed: Any
     y_train: Any
     y_test: Any
-    transform_name: str
-    transform_desc: str
+    transformer_name: str
+    transformer_desc: str
     model_data: ModelData
 
     def get_better(
@@ -111,6 +122,21 @@ def get_best_transformation(
     col_name: str,
     transformations: List[Callable],
 ) -> Optional[TransformationData]:
+    """Get best from valid transformations of that column.
+
+    Args:
+        config (Settings): Configuration of report.
+        X_train (Any): Train set.
+        X_test (Any): Test set.
+        y_train (Any): Train results.
+        y_test (Any): Test results.
+        col_name (str): Name of column to transform.
+        transformations (List[Callable]): List of transformations, to execute.
+
+    Returns:
+        Optional[TransformationData]: None, if there is no transformation to execute.
+                Transformation data of best transformation.
+    """
     raise NotImplementedError
 
 
@@ -138,15 +164,15 @@ def get_transformations_map() -> Dict[str, List[Any]]:
 def get_transformations_module(
     config: Settings,
     variables_desc: Dict[str, Any],
-    target_desc: TargetDescription,
-    df: Any,
+    X_train: Any,
+    X_test: Any,
+    y_train: Any,
+    y_test: Any,
     base_model: Optional[ModelData],
 ) -> List[TransformationData]:
     transformations = []
     transform_map = get_transformations_map()
-    X_train, X_test, y_train, y_test = get_train_test_split(
-        config.model.model_seed, df, target_desc, config.model.test_size
-    )
+
     for var_name, var_desc in variables_desc.items():
         var_type = var_desc["type"]
         if var_type in transform_map:
@@ -176,3 +202,12 @@ def get_transformations_module(
         reverse=True,
     )
     return transformations
+
+
+@multimethod
+def transform_all(
+    X_train: Any,
+    X_test: Any,
+    transformations: List[TransformationData],
+) -> tuple[Any, Any]:
+    raise NotImplementedError

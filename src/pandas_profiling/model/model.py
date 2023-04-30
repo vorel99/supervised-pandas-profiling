@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Tuple
 
 from multimethod import multimethod
 
+from pandas_profiling.config import Model as ModelConfig
 from pandas_profiling.config import Settings
 from pandas_profiling.model.data import ConfMatrixData
 from pandas_profiling.model.description_target import TargetDescription
@@ -11,8 +12,18 @@ from pandas_profiling.model.description_target import TargetDescription
 
 @multimethod
 def get_train_test_split(
-    seed: int, df: Any, target_description: TargetDescription, test_size: float
-):
+    model_config: ModelConfig, df: Any, target_description: TargetDescription
+) -> tuple[Any, Any, Any, Any]:
+    """Split data to train and test subset
+
+    Args:
+        model_config (ModelConfig): Config of model containing seed.
+        df (Any): DataFrame
+        target_description (TargetDescription): Description of target variable.
+
+    Returns:
+        tuple[Any, Any, Any, Any]: X_train, X_test, y_train, y_test
+    """
     raise NotImplementedError
 
 
@@ -55,6 +66,8 @@ class Model(ABC):
 
 
 class ModelData(ABC):
+    """Data about model"""
+
     X_train: Any
     X_test: Any
     y_train: Any
@@ -92,7 +105,7 @@ class ModelModule:
 
 
 @multimethod
-def get_model_module(
-    config: Settings, target_description: TargetDescription, df: Any
-) -> ModelModule:
+def get_model_data(
+    config: Settings, X_train: Any, X_test: Any, y_train: Any, y_test: Any
+) -> ModelData:
     raise NotImplementedError()

@@ -1,8 +1,11 @@
 """Organize the calculation of statistics for each series in this DataFrame."""
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
+from tqdm.auto import tqdm
+from visions import VisionsTypeset
+
 from pandas_profiling.config import Settings
 from pandas_profiling.model.alerts import get_alerts
 from pandas_profiling.model.correlations import (
@@ -18,17 +21,61 @@ from pandas_profiling.model.missing import (
     get_missing_description,
     get_missing_diagram,
 )
-from pandas_profiling.model.model import ModelModule, get_model_module
+from pandas_profiling.model.model import (
+    ModelModule,
+    get_model_data,
+    get_train_test_split,
+)
 from pandas_profiling.model.pairwise import get_scatter_plot, get_scatter_tasks
 from pandas_profiling.model.sample import get_custom_sample, get_sample
 from pandas_profiling.model.summarizer import BaseSummarizer
 from pandas_profiling.model.summary import get_series_descriptions
 from pandas_profiling.model.table import get_table_stats
-from pandas_profiling.model.transformations import get_transformations_module
+from pandas_profiling.model.transformations import (
+    TransformationData,
+    get_transformations_module,
+    transform_all,
+)
 from pandas_profiling.utils.progress_bar import progress
 from pandas_profiling.version import __version__
-from tqdm.auto import tqdm
-from visions import VisionsTypeset
+
+
+def describe_model_transform(
+    config: Settings,
+    df: Any,
+    target_description: TargetDescription,
+    series_description: Any,
+) -> Tuple[Optional[List[TransformationData]], Optional[ModelModule]]:
+    transformations = None
+    model = None
+
+    X_train, X_test, y_train, y_test = get_train_test_split(
+        config.model, df, target_description
+    )
+
+    base_model = get_model_data(config, X_train, X_test, y_train, y_test)
+    transformed_model = None
+
+    # transformations module
+    if config.report.transform_module:
+        transformations = get_transformations_module(
+            config, series_description, X_train, X_test, y_train, y_test, base_model
+        )
+
+    # model module
+    if config.report.model_module and config.report.transform_module:
+        X_train_transformed, X_test_transformed = transform_all(
+            X_train, X_test, transformations
+        )
+        transformed_model = get_model_data(
+            config, X_train_transformed, X_test_transformed, y_train, y_test
+        )
+
+    if config.report.model_module:
+        model = ModelModule(
+            default_model=base_model, transformed_model=transformed_model
+        )
+    return transformations, model
 
 
 def describe(
@@ -184,21 +231,10 @@ def describe(
             )
             del series_description[target_description.name]
 
-            # model module
-            if config.report.model_module:
-                model = progress(get_model_module, pbar, "Get model")(
-                    config, target_description, df
-                )
-
-            # transformations module
-            if config.report.transform_module:
-                base_model = None
-                if model is not None:
-                    base_model = model.default_model
-
-                transformations = progress(
-                    get_transformations_module, pbar, "Get transformations"
-                )(config, series_description, target_description, df, base_model)
+            if config.report.model_module or config.report.transform_module:
+                transformations, model = progress(
+                    describe_model_transform, pbar, "Get model and transformations"
+                )(config, df, target_description, series_description)
 
         date_end = datetime.utcnow()
 
