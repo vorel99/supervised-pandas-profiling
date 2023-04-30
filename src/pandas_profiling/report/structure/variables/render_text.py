@@ -162,7 +162,7 @@ class RenderText(BaseRenderVariable):
             items.append(
                 LogOddsTable(
                     lo_table,
-                    name="Log odds words with Beta smoothing. alpha + beta = {}".format(
+                    name="Log2 odds with Beta smoothing. alpha + beta = {}".format(
                         self.config.vars.base.smoothing_parameter
                     ),
                     anchor_id="{}cwo".format(self.summary["varid"]),
