@@ -1,6 +1,6 @@
 from pandas_profiling.config import Settings
 from pandas_profiling.model.model import ModelData, ModelEvaluation, ModelModule
-from pandas_profiling.report.formatters import fmt_number, fmt_percent
+from pandas_profiling.report.formatters import fmt_number, fmt_numeric, fmt_percent
 from pandas_profiling.report.presentation.core import Image
 from pandas_profiling.report.presentation.core.container import Container
 from pandas_profiling.report.presentation.core.html import HTML
@@ -103,7 +103,7 @@ def _get_feature_importances(config: Settings, model_data: ModelData):
         records.append(
             {
                 "name": feature,
-                "value": fmt_number(importnace),
+                "value": fmt_numeric(importnace, config.report.precision),
             }
         )
 
