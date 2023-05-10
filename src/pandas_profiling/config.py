@@ -318,6 +318,12 @@ class Model(BaseModel):
     num_leaves: int = 10
 
 
+class Transformations(BaseModel):
+    seed: int = 123456
+    bin_count: int = 5
+    tf_idf_limit: int = 50
+
+
 class Report(BaseModel):
     """Setting for generating report from description."""
 
@@ -404,6 +410,7 @@ class Settings(BaseSettings):
     samples: Samples = Samples()
     alerts: Alerts = Alerts()
     model: Model = Model()
+    transformations: Transformations = Transformations()
 
     reject_variables: bool = True
 

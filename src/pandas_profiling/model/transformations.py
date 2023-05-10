@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from multimethod import multimethod
 
-from pandas_profiling.config import Settings
+from pandas_profiling.config import Settings, Transformations
 from pandas_profiling.model.model import ModelData
 
 
@@ -49,10 +49,10 @@ class Transformation:
     transformer: Any
     transformation_name: str
     transformation_description: str
-    seed: int
+    transform_setting: Transformations
 
-    def __init__(self, seed) -> None:
-        self.seed = seed
+    def __init__(self, transform_setting: Transformations) -> None:
+        self.transform_setting = transform_setting
 
     @multimethod
     def fit(self, X: Any):

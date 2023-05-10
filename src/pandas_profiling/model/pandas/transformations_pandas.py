@@ -62,7 +62,10 @@ def transform_log_transform_pandas(self: LogTransformation, X: pd.Series):
 @BinningTransformation.fit.register
 def fit_binning_transform_pandas(self: BinningTransformation, X: pd.Series):
     self.transformer = KBinsDiscretizer(
-        encode="ordinal", strategy="quantile", random_state=self.seed
+        encode="ordinal",
+        strategy="quantile",
+        random_state=self.transform_setting.seed,
+        n_bins=self.transform_setting.bin_count,
     )
     self.transformer.fit(X.to_frame())
 
@@ -96,14 +99,10 @@ def transform_one_hot_transform_pandas(self: OneHotTransformation, X: pd.Series)
 @TfIdfTransformation.fit.register
 def fit_tf_idf_transform_pandas(self: TfIdfTransformation, X: pd.Series):
     self.transformer = TfidfVectorizer(
-        token_pattern=r"(?u)\b[\w\./]+\b", stop_words="english", max_features=50
+        token_pattern=r"(?u)\b[\w\./]+\b",
+        stop_words="english",
+        max_features=self.transform_setting.tf_idf_limit,
     )
-    # text_logodds: pd.DataFrame = col_desc["plot_description"].log_odds
-    # # TODO replace constant .5
-    # self.significant_words = text_logodds[
-    #     text_logodds["log_odds_ratio"].abs() > 0.5
-    # ].index.to_list()
-
     # get tf-idf matrix of words
     self.transformer.fit(X)
 
@@ -130,7 +129,7 @@ def get_best_transformation_pandas(
     best_transform = None
 
     for transform_class in transformations:
-        transformer: Transformation = transform_class(config.model.model_seed)
+        transformer: Transformation = transform_class(config.transformations)
         train_col = X_train[col_name]
         test_col = X_test[col_name]
         # if data contains nan and transformation doesn't support nan, skip
