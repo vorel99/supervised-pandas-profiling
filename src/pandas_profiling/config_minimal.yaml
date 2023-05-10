@@ -206,6 +206,11 @@ model:
   n_estimators: 10
   # Maximum tree leaves for base learners.
   num_leaves: 10
+  
+transformations:
+    seed: 123456
+    bin_count: 5
+    tf_idf_limit: 50
 
 # Configuration related to the rejection of variables
 reject_variables: true
