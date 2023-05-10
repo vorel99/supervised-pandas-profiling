@@ -440,7 +440,9 @@ def render_categorical(config: Settings, summary: dict) -> dict:
                 },
                 {
                     "name": "Mean (prior)",
-                    "value": fmt_number(summary["target_mean"]),
+                    "value": fmt_numeric(
+                        summary["target_mean"], config.report.precision
+                    ),
                     "alert": False,
                 },
             ],
