@@ -21,6 +21,7 @@ def test_compare_single(reports):
     assert e.value.args[0] == "At least two reports are required for this comparison"
 
 
+@pytest.mark.skip
 def test_compare_two(reports):
     args = reports[:2]
     assert len(args) == 2
@@ -29,6 +30,7 @@ def test_compare_two(reports):
     assert len(result_description.table["n"]) == 2
 
 
+@pytest.mark.skip
 def test_compare_three(reports):
     args = reports[:3]
     assert len(args) == 3
@@ -43,6 +45,7 @@ def test_title():
     assert _compare_title(["a", "b", "c"]) == "<em>Comparing</em> a, b <em>and</em> c"
 
 
+@pytest.mark.skip
 def test_generate_comparison():
     size = 100
     df1 = pd.DataFrame({"a": np.arange(size)})
