@@ -394,7 +394,7 @@ def render_categorical(config: Settings, summary: dict) -> dict:
         rows.append(
             {
                 "name": "p-value of independence",
-                "value": round(
+                "value": fmt_numeric(
                     p_value_of_independence,
                     config.report.precision,
                 ),
