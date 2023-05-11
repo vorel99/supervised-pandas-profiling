@@ -394,7 +394,7 @@ def render_categorical(config: Settings, summary: dict) -> dict:
         rows.append(
             {
                 "name": "p-value of independence",
-                "value": round(
+                "value": fmt_numeric(
                     p_value_of_independence,
                     config.report.precision,
                 ),
@@ -440,7 +440,9 @@ def render_categorical(config: Settings, summary: dict) -> dict:
                 },
                 {
                     "name": "Mean (prior)",
-                    "value": fmt_number(summary["target_mean"]),
+                    "value": fmt_numeric(
+                        summary["target_mean"], config.report.precision
+                    ),
                     "alert": False,
                 },
             ],

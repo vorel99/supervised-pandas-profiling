@@ -50,7 +50,9 @@ def render_transformations_module(
             [transform_info, model_evaluation],
             name=transform_data.col_name,
             sequence_type="named_list",
-            anchor_id="transform_tab_{}".format(transform_data.col_name),
+            anchor_id="transform_tab_{}".format(
+                "_".join(transform_data.col_name.split())
+            ),
         )
 
         items.append(one_transform)
