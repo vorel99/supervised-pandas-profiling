@@ -4,12 +4,13 @@ import pandas as pd
 
 from ydata_profiling.config import Settings
 from ydata_profiling.model.summary_algorithms import describe_counts
+from ydata_profiling.model.var_description.default import VarDescription
 
 
 @describe_counts.register
 def pandas_describe_counts(
-    config: Settings, series: pd.Series, summary: dict
-) -> Tuple[Settings, pd.Series, dict]:
+    config: Settings, series: pd.Series, summary: VarDescription
+) -> Tuple[Settings, pd.Series, VarDescription]:
     """Counts the values in a series (with and without NaN, distinct).
 
     Args:

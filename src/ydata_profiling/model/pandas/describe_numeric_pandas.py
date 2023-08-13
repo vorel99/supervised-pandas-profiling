@@ -3,6 +3,7 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pandas as pd
 
+from ydata_profiling.model.var_description.default import VarDescription
 from ydata_profiling.utils.compat import pandas_version_info
 
 if pandas_version_info() >= (1, 5):
@@ -44,15 +45,14 @@ def numeric_stats_pandas(series: pd.Series) -> Dict[str, Any]:
 
 
 def numeric_stats_numpy(
-    present_values: np.ndarray, series: pd.Series, series_description: Dict[str, Any]
+    present_values: np.ndarray, series: pd.Series, value_counts_without_nan: Any
 ) -> Dict[str, Any]:
-    vc = series_description["value_counts_without_nan"]
-    index_values = vc.index.values
+    index_values = value_counts_without_nan.index.values
 
     # FIXME: can be performance optimized by using weights in std, var, kurt and skew...
 
     return {
-        "mean": np.average(index_values, weights=vc.values),
+        "mean": np.average(index_values, weights=value_counts_without_nan.values),
         "std": np.std(present_values, ddof=1),
         "variance": np.var(present_values, ddof=1),
         "min": np.min(index_values),
@@ -61,7 +61,7 @@ def numeric_stats_numpy(
         "kurtosis": series.kurt(),
         # Unbiased skew normalized by N-1
         "skewness": series.skew(),
-        "sum": np.dot(index_values, vc.values),
+        "sum": np.dot(index_values, value_counts_without_nan.values),
     }
 
 
@@ -69,8 +69,8 @@ def numeric_stats_numpy(
 @series_hashable
 @series_handle_nulls
 def pandas_describe_numeric_1d(
-    config: Settings, series: pd.Series, summary: dict
-) -> Tuple[Settings, pd.Series, dict]:
+    config: Settings, series: pd.Series, summary: VarDescription
+) -> Tuple[Settings, pd.Series, VarDescription]:
     """Describe a numeric series.
 
     Args:
@@ -85,11 +85,11 @@ def pandas_describe_numeric_1d(
     chi_squared_threshold = config.vars.num.chi_squared_threshold
     quantiles = config.vars.num.quantiles
 
-    value_counts = summary["value_counts_without_nan"]
+    value_counts = summary.value_counts_without_nan
 
     negative_index = value_counts.index < 0
     summary["n_negative"] = value_counts.loc[negative_index].sum()
-    summary["p_negative"] = summary["n_negative"] / summary["n"]
+    summary["p_negative"] = summary["n_negative"] / summary.n
 
     infinity_values = [np.inf, -np.inf]
     infinity_index = value_counts.index.isin(infinity_values)
@@ -108,7 +108,11 @@ def pandas_describe_numeric_1d(
     else:
         present_values = series.values
         finite_values = present_values[np.isfinite(present_values)]
-        stats.update(numeric_stats_numpy(present_values, series, summary))
+        stats.update(
+            numeric_stats_numpy(
+                present_values, series, summary.value_counts_without_nan
+            )
+        )
 
     stats.update(
         {
@@ -128,8 +132,8 @@ def pandas_describe_numeric_1d(
     )
     stats["iqr"] = stats["75%"] - stats["25%"]
     stats["cv"] = stats["std"] / stats["mean"] if stats["mean"] else np.NaN
-    stats["p_zeros"] = stats["n_zeros"] / summary["n"]
-    stats["p_infinite"] = summary["n_infinite"] / summary["n"]
+    stats["p_zeros"] = stats["n_zeros"] / summary.n
+    stats["p_infinite"] = summary["n_infinite"] / summary.n
 
     stats["monotonic_increase"] = series.is_monotonic_increasing
     stats["monotonic_decrease"] = series.is_monotonic_decreasing
@@ -155,7 +159,7 @@ def pandas_describe_numeric_1d(
         histogram_compute(
             config,
             value_counts[~infinity_index].index.values,
-            summary["n_distinct"],
+            summary.n_distinct,
             weights=value_counts[~infinity_index].values,
         )
     )

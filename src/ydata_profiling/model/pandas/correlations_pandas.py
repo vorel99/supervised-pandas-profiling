@@ -20,6 +20,7 @@ from ydata_profiling.model.pandas.discretize_pandas import (
     DiscretizationType,
     Discretizer,
 )
+from ydata_profiling.model.var_description.default import VarDescription
 
 
 @Spearman.compute.register(Settings, pd.DataFrame, dict)
@@ -84,9 +85,9 @@ def _pairwise_cramers(col_1: pd.Series, col_2: pd.Series) -> float:
     return _cramers_corrected_stat(pd.crosstab(col_1, col_2), correction=True)
 
 
-@Cramers.compute.register(Settings, pd.DataFrame, dict)
+@Cramers.compute.register(Settings, pd.DataFrame, dict[str, VarDescription])
 def pandas_cramers_compute(
-    config: Settings, df: pd.DataFrame, summary: dict
+    config: Settings, df: pd.DataFrame, summary: dict[str, VarDescription]
 ) -> Optional[pd.DataFrame]:
     threshold = config.categorical_maximum_correlation_distinct
 
@@ -97,7 +98,7 @@ def pandas_cramers_compute(
             key
             for key, value in summary.items()
             if value["type"] in {"Categorical", "Boolean"}
-            and 1 < value["n_distinct"] <= threshold
+            and 1 < value.n_distinct <= threshold
         }
     )
 
@@ -124,9 +125,9 @@ def pandas_cramers_compute(
     return correlation_matrix
 
 
-@PhiK.compute.register(Settings, pd.DataFrame, dict)
+@PhiK.compute.register(Settings, pd.DataFrame, dict[str, VarDescription])
 def pandas_phik_compute(
-    config: Settings, df: pd.DataFrame, summary: dict
+    config: Settings, df: pd.DataFrame, summary: dict[str, VarDescription]
 ) -> Optional[pd.DataFrame]:
     df_cols_dict = {i: list(df.columns).index(i) for i in df.columns}
 
@@ -136,14 +137,14 @@ def pandas_phik_compute(
         # DateTime currently excluded
         # In some use cases, it makes sense to convert it to interval
         # See https://github.com/KaveIO/PhiK/issues/7
-        if value["type"] == "Numeric" and 1 < value["n_distinct"]
+        if value["type"] == "Numeric" and 1 < value.n_distinct
     }
 
     selcols = {
         key
         for key, value in summary.items()
         if value["type"] != "Unsupported"
-        and 1 < value["n_distinct"] <= config.categorical_maximum_correlation_distinct
+        and 1 < value.n_distinct <= config.categorical_maximum_correlation_distinct
     }
     selcols = selcols.union(intcols)
     selected_cols = sorted(selcols, key=lambda i: df_cols_dict[i])
@@ -160,21 +161,21 @@ def pandas_phik_compute(
     return correlation
 
 
-@Auto.compute.register(Settings, pd.DataFrame, dict)
+@Auto.compute.register(Settings, pd.DataFrame, dict[str, VarDescription])
 def pandas_auto_compute(
-    config: Settings, df: pd.DataFrame, summary: dict
+    config: Settings, df: pd.DataFrame, summary: dict[str, VarDescription]
 ) -> Optional[pd.DataFrame]:
     threshold = config.categorical_maximum_correlation_distinct
     numerical_columns = [
         key
         for key, value in summary.items()
-        if value["type"] in {"Numeric", "TimeSeries"} and value["n_distinct"] > 1
+        if value["type"] in {"Numeric", "TimeSeries"} and value.n_distinct > 1
     ]
     categorical_columns = [
         key
         for key, value in summary.items()
         if value["type"] in {"Categorical", "Boolean"}
-        and 1 < value["n_distinct"] <= threshold
+        and 1 < value.n_distinct <= threshold
     ]
 
     if len(numerical_columns + categorical_columns) <= 1:
@@ -190,7 +191,6 @@ def pandas_auto_compute(
         columns=columns_tested,
     )
     for col_1_name, col_2_name in itertools.combinations(columns_tested, 2):
-
         method = (
             _pairwise_spearman
             if col_1_name and col_2_name not in categorical_columns

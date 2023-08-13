@@ -11,14 +11,15 @@ from ydata_profiling.model.summary_algorithms import (
     series_handle_nulls,
     series_hashable,
 )
+from ydata_profiling.model.var_description.default import VarDescription
 
 
 @describe_date_1d.register
 @series_hashable
 @series_handle_nulls
 def pandas_describe_date_1d(
-    config: Settings, series: pd.Series, summary: dict
-) -> Tuple[Settings, pd.Series, dict]:
+    config: Settings, series: pd.Series, summary: VarDescription
+) -> Tuple[Settings, pd.Series, VarDescription]:
     """Describe a date series.
 
     Args:
@@ -43,5 +44,5 @@ def pandas_describe_date_1d(
     if config.vars.num.chi_squared_threshold > 0.0:
         summary["chi_squared"] = chi_square(values)
 
-    summary.update(histogram_compute(config, values, summary["n_distinct"]))
+    summary.update(histogram_compute(config, values, summary.n_distinct))
     return config, values, summary

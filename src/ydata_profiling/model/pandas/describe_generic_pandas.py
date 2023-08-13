@@ -4,12 +4,13 @@ import pandas as pd
 
 from ydata_profiling.config import Settings
 from ydata_profiling.model.summary_algorithms import describe_generic
+from ydata_profiling.model.var_description.default import VarDescription
 
 
 @describe_generic.register
 def pandas_describe_generic(
-    config: Settings, series: pd.Series, summary: dict
-) -> Tuple[Settings, pd.Series, dict]:
+    config: Settings, series: pd.Series, summary: VarDescription
+) -> Tuple[Settings, pd.Series, VarDescription]:
     """Describe generic series.
 
     Args:
