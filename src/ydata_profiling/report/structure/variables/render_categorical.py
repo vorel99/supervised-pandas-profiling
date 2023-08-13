@@ -3,6 +3,7 @@ from typing import List, Tuple, Union
 import pandas as pd
 
 from ydata_profiling.config import Settings
+from ydata_profiling.model.var_description.default import VarDescription
 from ydata_profiling.report.formatters import (
     fmt,
     fmt_bytesize,
@@ -27,13 +28,13 @@ from ydata_profiling.visualisation.plot import cat_frequency_plot, histogram
 
 
 def render_categorical_frequency(
-    config: Settings, summary: dict, varid: str
+    config: Settings, summary: VarDescription, varid: str
 ) -> Renderable:
     frequency_table = Table(
         [
             {
                 "name": "Unique",
-                "value": fmt_number(summary["n_unique"]),
+                "value": fmt_number(summary.n_unique),
                 "hint": help(
                     "The number of unique values (all values that occur exactly once in the dataset)."
                 ),
@@ -41,7 +42,7 @@ def render_categorical_frequency(
             },
             {
                 "name": "Unique (%)",
-                "value": fmt_percent(summary["p_unique"]),
+                "value": fmt_percent(summary.p_unique),
                 "alert": "p_unique" in summary["alert_fields"],
             },
         ],
@@ -54,7 +55,7 @@ def render_categorical_frequency(
 
 
 def render_categorical_length(
-    config: Settings, summary: dict, varid: str
+    config: Settings, summary: VarDescription, varid: str
 ) -> Tuple[Renderable, Renderable]:
     length_table = Table(
         [
@@ -117,7 +118,7 @@ def _get_n(value: Union[list, pd.DataFrame]) -> Union[int, List[int]]:
 
 
 def render_categorical_unicode(
-    config: Settings, summary: dict, varid: str
+    config: Settings, summary: VarDescription, varid: str
 ) -> Tuple[Renderable, Renderable]:
     n_freq_table_max = config.n_freq_table_max
 
@@ -329,7 +330,7 @@ def render_categorical_unicode(
     )
 
 
-def render_categorical(config: Settings, summary: dict) -> dict:
+def render_categorical(config: Settings, summary: VarDescription) -> dict:
     varid = summary["varid"]
     n_obs_cat = config.vars.cat.n_obs
     image_format = config.plot.image_format
@@ -356,27 +357,27 @@ def render_categorical(config: Settings, summary: dict) -> dict:
         [
             {
                 "name": "Distinct",
-                "value": fmt(summary["n_distinct"]),
+                "value": fmt(summary.n_distinct),
                 "alert": "n_distinct" in summary["alert_fields"],
             },
             {
                 "name": "Distinct (%)",
-                "value": fmt_percent(summary["p_distinct"]),
+                "value": fmt_percent(summary.p_distinct),
                 "alert": "p_distinct" in summary["alert_fields"],
             },
             {
                 "name": "Missing",
-                "value": fmt(summary["n_missing"]),
+                "value": fmt(summary.n_missing),
                 "alert": "n_missing" in summary["alert_fields"],
             },
             {
                 "name": "Missing (%)",
-                "value": fmt_percent(summary["p_missing"]),
+                "value": fmt_percent(summary.p_missing),
                 "alert": "p_missing" in summary["alert_fields"],
             },
             {
                 "name": "Memory size",
-                "value": fmt_bytesize(summary["memory_size"]),
+                "value": fmt_bytesize(summary.memory_size),
                 "alert": False,
             },
         ],
@@ -385,8 +386,8 @@ def render_categorical(config: Settings, summary: dict) -> dict:
 
     fqm = FrequencyTableSmall(
         freq_table(
-            freqtable=summary["value_counts_without_nan"],
-            n=summary["count"],
+            freqtable=summary.value_counts_without_nan,
+            n=summary.count,
             max_number_to_print=n_obs_cat,
         ),
         redact=config.vars.cat.redact,
@@ -459,7 +460,7 @@ def render_categorical(config: Settings, summary: dict) -> dict:
     max_unique = config.plot.cat_freq.max_unique
 
     if show and (max_unique > 0):
-        if isinstance(summary["value_counts_without_nan"], list):
+        if isinstance(summary.value_counts_without_nan, list):
             string_items.append(
                 Container(
                     [
@@ -473,12 +474,12 @@ def render_categorical(config: Settings, summary: dict) -> dict:
                             name=config.html.style._labels[idx],
                             anchor_id=f"{varid}cat_frequency_plot_{idx}",
                         )
-                        if summary["n_distinct"][idx] <= max_unique
+                        if summary.n_distinct[idx] <= max_unique
                         else HTML(
                             f"<h4 class='indent'>{config.html.style._labels[idx]}</h4><br />"
                             f"<em>Number of variable categories passes threshold (<code>config.plot.cat_freq.max_unique</code>)</em>"
                         )
-                        for idx, s in enumerate(summary["value_counts_without_nan"])
+                        for idx, s in enumerate(summary.value_counts_without_nan)
                     ],
                     anchor_id=f"{varid}cat_frequency_plot",
                     name="Common Values (Plot)",
@@ -486,14 +487,12 @@ def render_categorical(config: Settings, summary: dict) -> dict:
                     batch_size=len(config.html.style._labels),
                 )
             )
-        elif (
-            len(config.html.style._labels) == 1 and summary["n_distinct"] <= max_unique
-        ):
+        elif len(config.html.style._labels) == 1 and summary.n_distinct <= max_unique:
             string_items.append(
                 Image(
                     cat_frequency_plot(
                         config,
-                        summary["value_counts_without_nan"],
+                        summary.value_counts_without_nan,
                     ),
                     image_format=image_format,
                     alt="Common Values (Plot)",
