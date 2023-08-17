@@ -8,7 +8,10 @@ import pandas as pd
 
 from ydata_profiling.config import Settings
 from ydata_profiling.model.correlations import perform_check_correlation
-from ydata_profiling.model.var_description.default import VarDescription
+from ydata_profiling.model.var_description.default import (
+    VarDescription,
+    VarDescriptionHashable,
+)
 
 
 def fmt_percent(value: float, edge_cases: bool = True) -> str:
@@ -163,7 +166,7 @@ class ConstantLengthAlert(Alert):
 class ConstantAlert(Alert):
     def __init__(
         self,
-        values: VarDescription,
+        values: VarDescriptionHashable,
         column_name: Optional[str] = None,
         is_empty: bool = False,
     ):
@@ -221,7 +224,7 @@ class EmptyAlert(Alert):
 class HighCardinalityAlert(Alert):
     def __init__(
         self,
-        values: VarDescription,
+        values: VarDescriptionHashable,
         column_name: Optional[str] = None,
         is_empty: bool = False,
     ):
@@ -429,7 +432,7 @@ class UniformAlert(Alert):
 class UniqueAlert(Alert):
     def __init__(
         self,
-        values: VarDescription,
+        values: VarDescriptionHashable,
         column_name: Optional[str] = None,
         is_empty: bool = False,
     ):
@@ -532,7 +535,7 @@ def check_table_alerts(table: dict) -> List[Alert]:
     return alerts
 
 
-def numeric_alerts(config: Settings, summary: VarDescription) -> List[Alert]:
+def numeric_alerts(config: Settings, summary: VarDescriptionHashable) -> List[Alert]:
     alerts: List[Alert] = []
 
     # Skewness
@@ -556,7 +559,7 @@ def numeric_alerts(config: Settings, summary: VarDescription) -> List[Alert]:
     return alerts
 
 
-def timeseries_alerts(config: Settings, summary: VarDescription) -> List[Alert]:
+def timeseries_alerts(config: Settings, summary: VarDescriptionHashable) -> List[Alert]:
     alerts: List[Alert] = numeric_alerts(config, summary)
 
     if not summary["stationary"]:
@@ -568,7 +571,9 @@ def timeseries_alerts(config: Settings, summary: VarDescription) -> List[Alert]:
     return alerts
 
 
-def categorical_alerts(config: Settings, summary: VarDescription) -> List[Alert]:
+def categorical_alerts(
+    config: Settings, summary: VarDescriptionHashable
+) -> List[Alert]:
     alerts: List[Alert] = []
 
     # High cardinality
@@ -597,7 +602,7 @@ def categorical_alerts(config: Settings, summary: VarDescription) -> List[Alert]
     return alerts
 
 
-def boolean_alerts(config: Settings, summary: VarDescription) -> List[Alert]:
+def boolean_alerts(config: Settings, summary: VarDescriptionHashable) -> List[Alert]:
     alerts: List[Alert] = []
 
     if (
@@ -618,7 +623,7 @@ def generic_alerts(summary: VarDescription) -> List[Alert]:
     return alerts
 
 
-def supported_alerts(summary: VarDescription) -> List[Alert]:
+def supported_alerts(summary: VarDescriptionHashable) -> List[Alert]:
     alerts: List[Alert] = []
 
     if summary.n_distinct == summary.n:
@@ -637,7 +642,7 @@ def unsupported_alerts(summary: VarDescription) -> List[Alert]:
 
 
 def check_variable_alerts(
-    config: Settings, col: str, description: VarDescription
+    config: Settings, col: str, description: VarDescription | VarDescriptionHashable
 ) -> List[Alert]:
     """Checks individual variables for alerts.
 
@@ -654,7 +659,7 @@ def check_variable_alerts(
 
     if description["type"] == "Unsupported":
         alerts += unsupported_alerts(description)
-    else:
+    elif isinstance(description, VarDescriptionHashable):
         alerts += supported_alerts(description)
 
         if description["type"] == "Categorical":
@@ -665,6 +670,8 @@ def check_variable_alerts(
             alerts += timeseries_alerts(config, description)
         if description["type"] == "Boolean":
             alerts += boolean_alerts(config, description)
+    else:
+        raise ValueError("description should be 'VarDescriptionHashable'")
 
     for idx in range(len(alerts)):
         alerts[idx].column_name = col

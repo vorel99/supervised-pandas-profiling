@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -41,16 +43,24 @@ def test_config():
 
 @pytest.fixture
 def test_summary():
-    summary = {
-        "float_1": {"type": "Numeric", "n_distinct": 10},
-        "float_2": {"type": "Numeric", "n_distinct": 10},
-        "integer_1": {"type": "Numeric", "n_distinct": 10},
-        "integer_2": {"type": "Numeric", "n_distinct": 10},
-        "string_1": {"type": "Categorical", "n_distinct": 10},
-        "string_2": {"type": "Categorical", "n_distinct": 10},
-    }
+    # mock numeric description
+    num_desc = MagicMock()
+    num_desc.n_distinct = 10
+    num_desc.__getitem__.return_value = "Numeric"
 
-    return summary
+    # mock categorical description
+    cat_desc = MagicMock()
+    cat_desc.n_distinct = 10
+    cat_desc.__getitem__.return_value = "Categorical"
+
+    return {
+        "float_1": num_desc,
+        "float_2": num_desc,
+        "integer_1": num_desc,
+        "integer_2": num_desc,
+        "string_1": cat_desc,
+        "string_2": cat_desc,
+    }
 
 
 def test_auto_compute_all(test_config, test_dataframe, test_summary):

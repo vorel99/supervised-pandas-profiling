@@ -2,7 +2,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
-from ydata_profiling.model.var_description.default import VarDescription
+from ydata_profiling.model.var_description.default import (
+    VarDescription,
+    VarDescriptionHashable,
+)
 
 
 @dataclass
@@ -98,7 +101,7 @@ class BaseDescription:
     analysis: BaseAnalysis
     time_index_analysis: Optional[TimeIndexAnalysis]
     table: Any
-    variables: Dict[str, VarDescription]
+    variables: Dict[str, Union[VarDescriptionHashable, VarDescription]]
     scatter: Any
     correlations: Dict[str, Any]
     missing: Dict[str, Any]
