@@ -3,7 +3,7 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pandas as pd
 
-from ydata_profiling.model.var_description.default import VarDescription
+from ydata_profiling.model.var_description.default import VarDescriptionHashable
 from ydata_profiling.utils.compat import pandas_version_info
 
 if pandas_version_info() >= (1, 5):
@@ -17,7 +17,6 @@ from ydata_profiling.model.summary_algorithms import (
     describe_numeric_1d,
     histogram_compute,
     series_handle_nulls,
-    series_hashable,
 )
 
 
@@ -66,11 +65,10 @@ def numeric_stats_numpy(
 
 
 @describe_numeric_1d.register
-@series_hashable
 @series_handle_nulls
 def pandas_describe_numeric_1d(
-    config: Settings, series: pd.Series, summary: VarDescription
-) -> Tuple[Settings, pd.Series, VarDescription]:
+    config: Settings, series: pd.Series, summary: VarDescriptionHashable
+) -> Tuple[Settings, pd.Series, VarDescriptionHashable]:
     """Describe a numeric series.
 
     Args:

@@ -4,18 +4,14 @@ import pandas as pd
 
 from ydata_profiling.config import Settings
 from ydata_profiling.model.pandas.imbalance_pandas import column_imbalance_score
-from ydata_profiling.model.summary_algorithms import (
-    describe_boolean_1d,
-    series_hashable,
-)
-from ydata_profiling.model.var_description.default import VarDescription
+from ydata_profiling.model.summary_algorithms import describe_boolean_1d
+from ydata_profiling.model.var_description.default import VarDescriptionHashable
 
 
 @describe_boolean_1d.register
-@series_hashable
 def pandas_describe_boolean_1d(
-    config: Settings, series: pd.Series, summary: VarDescription
-) -> Tuple[Settings, pd.Series, VarDescription]:
+    config: Settings, series: pd.Series, summary: VarDescriptionHashable
+) -> Tuple[Settings, pd.Series, VarDescriptionHashable]:
     """Describe a boolean series.
 
     Args:

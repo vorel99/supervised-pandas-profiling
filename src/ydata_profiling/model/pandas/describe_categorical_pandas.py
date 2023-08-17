@@ -14,9 +14,8 @@ from ydata_profiling.model.summary_algorithms import (
     describe_categorical_1d,
     histogram_compute,
     series_handle_nulls,
-    series_hashable,
 )
-from ydata_profiling.model.var_description.default import VarDescription
+from ydata_profiling.model.var_description.default import VarDescriptionHashable
 
 
 def get_character_counts_vc(vc: pd.Series) -> pd.Series:
@@ -208,11 +207,10 @@ def length_summary_vc(vc: pd.Series) -> dict:
 
 
 @describe_categorical_1d.register
-@series_hashable
 @series_handle_nulls
 def pandas_describe_categorical_1d(
-    config: Settings, series: pd.Series, summary: VarDescription
-) -> Tuple[Settings, pd.Series, VarDescription]:
+    config: Settings, series: pd.Series, summary: VarDescriptionHashable
+) -> Tuple[Settings, pd.Series, VarDescriptionHashable]:
     """Describe a categorical series.
 
     Args:

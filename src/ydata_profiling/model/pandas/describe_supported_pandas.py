@@ -4,7 +4,7 @@ import pandas as pd
 
 from ydata_profiling.config import Settings
 from ydata_profiling.model.pandas.var_description.default_pandas import (
-    VarDescriptionPandas,
+    get_default_pandas_description,
 )
 from ydata_profiling.model.summary_algorithms import describe_supported
 from ydata_profiling.model.var_description.default import VarDescription
@@ -25,6 +25,6 @@ def pandas_describe_supported(
         A dict containing calculated series description values.
     """
 
-    series_description = VarDescriptionPandas(config, series, description)
+    series_description = get_default_pandas_description(config, series, description)
 
     return config, series, series_description

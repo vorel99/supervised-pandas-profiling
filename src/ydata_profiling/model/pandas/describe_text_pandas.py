@@ -12,19 +12,17 @@ from ydata_profiling.model.summary_algorithms import (
     describe_text_1d,
     histogram_compute,
     series_handle_nulls,
-    series_hashable,
 )
-from ydata_profiling.model.var_description.default import VarDescription
+from ydata_profiling.model.var_description.default import VarDescriptionHashable
 
 
 @describe_text_1d.register
-@series_hashable
 @series_handle_nulls
 def pandas_describe_text_1d(
     config: Settings,
     series: pd.Series,
-    summary: VarDescription,
-) -> Tuple[Settings, pd.Series, VarDescription]:
+    summary: VarDescriptionHashable,
+) -> Tuple[Settings, pd.Series, VarDescriptionHashable]:
     """Describe string series.
 
     Args:
