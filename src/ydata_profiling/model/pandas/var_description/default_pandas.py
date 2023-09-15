@@ -65,6 +65,7 @@ class VarDescriptionPandasHashable(VarDescriptionHashable):
             n_unique=unique_count,
             p_unique=unique_count / _count if _count > 0 else 0,
             var_specific=init_dict,
+            value_counts=var_counts.value_counts,
         )
 
 

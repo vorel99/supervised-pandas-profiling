@@ -67,4 +67,5 @@ class VarCountsPandas(VarCounts):
             p_missing=series.isna().sum() / length if length > 0 else 0,
             count=length - series.isna().sum(),
             memory_size=series.memory_usage(deep=config.memory_deep),
+            value_counts=None,
         )
