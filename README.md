@@ -217,6 +217,9 @@ Install it by navigating to the proper directory and running:
 ```sh
 pip install -e .
 ```
+or you can use command `make install_dev_pandas` to install requirements for pandas development 
+or `make install_dev_spark` for spark development.
+Than activate venv with command `source venv/bin/activate`. 
 
 The profiling report is written in HTML and CSS, which means a modern browser is required. 
 
@@ -225,8 +228,9 @@ You need [Python 3](https://python3statement.org/) to run the package. Other dep
 | Filename | Requirements|
 |----------|-------------|
 | [requirements.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements.txt) | Package requirements|
-| [requirements-dev.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-dev.txt)  |  Requirements for development|
-| [requirements-test.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-test.txt) | Requirements for testing|
+| [requirements-dev.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-dev.txt)  |  Requirements for pandas development|
+| [requirements-spark.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-spark.txt)  |  Requirements for spark development|
+| [requirements-test.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-test.txt) | Requirements for tests|
 | [setup.py](https://github.com/ydataai/pandas-profiling/blob/master/setup.py) | Requirements for widgets etc. |
 
 ## 🔗 Integrations
