@@ -46,8 +46,11 @@ install_dev_spark:
 	$(PYTHON) -m pip install -r requirements-spark.txt
 	$(PYTHON) -m pip install -e .
 
-install:
-	pip install -e .[notebook]
+install_pandas:
+	pip install -e ".[pandas, test, notebook]"
+
+install_spark:
+	pip install -e ".[spark, test, notebook]"
 
 install-docs: install ### Installs regular and docs dependencies
 	pip install -r requirements-docs.txt
@@ -55,9 +58,8 @@ install-docs: install ### Installs regular and docs dependencies
 # compile requirements files
 compile:
 	$(PYTHON) -m piptools compile -o requirements.txt pyproject.toml
-	$(PYTHON) -m piptools compile --extra dev --extra pandas -o requirements-dev.txt pyproject.toml
-	$(PYTHON) -m piptools compile --extra dev --extra spark -o requirements-spark.txt pyproject.toml
-	$(PYTHON) -m piptools compile --extra dev -o requirements-test.txt pyproject.toml
+	$(PYTHON) -m piptools compile --extra dev --extra test --extra pandas -o requirements-dev.txt pyproject.toml
+	$(PYTHON) -m piptools compile --extra dev --extra test --extra spark -o requirements-spark.txt pyproject.toml
 
 publish-docs: examples ### Publishes the documentation
 	mkdir docs/examples
