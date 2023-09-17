@@ -173,8 +173,8 @@ jobs:
 #            pandas: ">1.1"
 
     name: Tests Spark | python ${{ matrix.python-version }}, ${{ matrix.os }}, spark${{ matrix.spark }}, ${{ matrix.pandas }}, ${{ matrix.numpy }}
-    # env:
-    #   JAVA_HOME: ${{ matrix.java_home }}
+    env:
+      JAVA_HOME: ${{ matrix.java_home }}
     #   SPARK_VERSION: ${{ matrix.spark }}
     #   HADOOP_VERSION: ${{ matrix.hadoop }}
     #   SPARK_DIRECTORY: ${{ github.workspace }}/../
