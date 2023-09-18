@@ -175,7 +175,7 @@ jobs:
     name: Tests Spark | python ${{ matrix.python-version }}, ${{ matrix.os }}, spark${{ matrix.spark }}, ${{ matrix.pandas }}, ${{ matrix.numpy }}
     env:
       JAVA_HOME: ${{ matrix.java_home }}
-    #   SPARK_VERSION: ${{ matrix.spark }}
+      SPARK_VERSION: ${{ matrix.spark }}
     #   HADOOP_VERSION: ${{ matrix.hadoop }}
     #   SPARK_DIRECTORY: ${{ github.workspace }}/../
     steps:
@@ -208,7 +208,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.pandas }}-pip-
       - run: |
           pip install --upgrade pip setuptools wheel
-          pip install pytest-spark>=0.6.0 pyarrow==1.0.1 pyspark=="${{ matrix.spark }}"
+          pip install pyarrow==1.0.1 pyspark=="${{ matrix.spark }}"
           pip install "${{ matrix.pandas }}" "${{ matrix.numpy }}"
       - if: ${{ matrix.spark != '3.0.1' }}
         run: echo "ARROW_PRE_0_15_IPC_FORMAT=1" >> $GITHUB_ENV
