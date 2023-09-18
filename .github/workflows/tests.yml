@@ -155,7 +155,7 @@ jobs:
       matrix:
         os: [ ubuntu-22.04 ]
         python-version: [3.7, 3.8]
-        pandas: ["pandas==0.25.3", "pandas==1.0.5", "pandas>1.1"]
+        pandas: ["pandas==0.25.3", "pandas==1.5.3", "pandas>1.1, <2.0"]
         spark: ["2.3.0", "2.4.7", "3.0.1"]
         hadoop: [ 2.7 ]
         numpy: ["numpy"]
@@ -211,6 +211,8 @@ jobs:
           pip install pyarrow==1.0.1 pyspark=="${{ matrix.spark }}"
           pip install -e ".[spark, test, notebook]"
           pip install "${{ matrix.pandas }}" "${{ matrix.numpy }}"
+      # Make sure the proper version of pandas is install after everything
+      - run: pip freeze
       - if: ${{ matrix.spark != '3.0.1' }}
         run: echo "ARROW_PRE_0_15_IPC_FORMAT=1" >> $GITHUB_ENV
       - run: echo "SPARK_LOCAL_IP=127.0.0.1" >> $GITHUB_ENV
