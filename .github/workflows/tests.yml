@@ -209,6 +209,7 @@ jobs:
       - run: |
           pip install --upgrade pip setuptools wheel
           pip install pyarrow==1.0.1 pyspark=="${{ matrix.spark }}"
+          pip install -e ".[spark, test, notebook]"
           pip install "${{ matrix.pandas }}" "${{ matrix.numpy }}"
       - if: ${{ matrix.spark != '3.0.1' }}
         run: echo "ARROW_PRE_0_15_IPC_FORMAT=1" >> $GITHUB_ENV
@@ -216,6 +217,5 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get -y install openjdk-8-jdk
-      - run: make install_spark
       - run: make test_spark
 
