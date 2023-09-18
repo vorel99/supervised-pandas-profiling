@@ -213,6 +213,9 @@ jobs:
       - if: ${{ matrix.spark != '3.0.1' }}
         run: echo "ARROW_PRE_0_15_IPC_FORMAT=1" >> $GITHUB_ENV
       - run: echo "SPARK_LOCAL_IP=127.0.0.1" >> $GITHUB_ENV
+      - run: |
+          sudo apt-get update
+          sudo apt-get -y install openjdk-8-jdk
       - run: make install_spark
       - run: make test_spark
 
