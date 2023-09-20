@@ -1,4 +1,4 @@
-VENV = venv
+VENV = .venv
 PYTHON = $(VENV)/bin/python
 ACTIVATE = . $(VENV)/bin/activate
 
@@ -35,31 +35,24 @@ package:
 install_dev_pandas:
 	rm -rf $(VENV)
 	python -m venv $(VENV)
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-dev.txt
-	$(PYTHON) -m pip install -e .
+	$(PYTHON) -m pip install -e ".[dev, test]"
 
 install_dev_spark:
 	rm -rf $(VENV)
 	python -m venv $(VENV)
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-spark.txt
-	$(PYTHON) -m pip install -e .
+	$(PYTHON) -m pip install -e ".[dev, test, spark]"
 
-install_pandas:
-	pip install -e ".[pandas, test, notebook]"
+install_test_pandas:
+	pip install -e ".[test, notebook]"
 
-install_spark:
+install_test_spark:
 	pip install -e ".[spark, test, notebook]"
 
 install-docs: install ### Installs regular and docs dependencies
-	pip install -r requirements-docs.txt
+	pip install -e ".[docs]"
 
-# compile requirements files
-compile:
-	$(PYTHON) -m piptools compile -o requirements.txt pyproject.toml
-	$(PYTHON) -m piptools compile --extra dev --extra test --extra pandas -o requirements-dev.txt pyproject.toml
-	$(PYTHON) -m piptools compile --extra dev --extra test --extra spark -o requirements-spark.txt pyproject.toml
+install:
+	pip install -e .[notebook]
 
 publish-docs: examples ### Publishes the documentation
 	mkdir docs/examples

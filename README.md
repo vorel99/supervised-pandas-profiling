@@ -215,11 +215,14 @@ Download the source code by cloning the repository or click on [Download ZIP](ht
 Install it by navigating to the proper directory and running:
 
 ```sh
-pip install -e .
+make install_dev_pandas
 ```
-or you can use command `make install_dev_pandas` to install requirements for pandas development 
-or `make install_dev_spark` for spark development.
-Than activate venv with command `source venv/bin/activate`. 
+or 
+```sh
+make install_dev_spark
+```
+for spark dev environment.
+Than activate venv with command `source .venv/bin/activate`. 
 
 The profiling report is written in HTML and CSS, which means a modern browser is required. 
 
