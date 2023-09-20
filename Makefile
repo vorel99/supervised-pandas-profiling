@@ -32,15 +32,10 @@ package:
 	python setup.py sdist bdist_wheel
 	twine check dist/*
 
-install_dev_pandas:
+install_dev:
 	rm -rf $(VENV)
 	python -m venv $(VENV)
 	$(PYTHON) -m pip install -e ".[dev, test]"
-
-install_dev_spark:
-	rm -rf $(VENV)
-	python -m venv $(VENV)
-	$(PYTHON) -m pip install -e ".[dev, test, spark]"
 
 install_test_pandas:
 	pip install -e ".[test, notebook]"
