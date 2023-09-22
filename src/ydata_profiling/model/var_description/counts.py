@@ -22,3 +22,6 @@ class VarCounts:
     """Sorted counts of values in the series without NaN. Sorted by counts."""
     ordering: Union[bool, list]
     memory_size: Union[int, list]
+
+    value_counts: Any
+    """Counts of values in original series type. Values as index, counts as values."""

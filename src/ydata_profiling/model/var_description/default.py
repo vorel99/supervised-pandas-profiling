@@ -38,6 +38,23 @@ class VarDescription(VarCounts):
         """To support old dict like interface."""
         return self.var_specific.__iter__()
 
+    @classmethod
+    def from_var_counts(cls, var_counts: VarCounts, init_dict: dict) -> VarDescription:
+        """Get a default description from a VarCounts object."""
+        return VarDescription(
+            n=var_counts.n,
+            count=var_counts.count,
+            n_missing=var_counts.n_missing,
+            p_missing=var_counts.p_missing,
+            hashable=var_counts.hashable,
+            memory_size=var_counts.memory_size,
+            ordering=var_counts.ordering,
+            var_specific=init_dict,
+            value_counts_index_sorted=var_counts.value_counts_index_sorted,
+            value_counts_without_nan=var_counts.value_counts_without_nan,
+            value_counts=var_counts.value_counts,
+        )
+
 
 @dataclass
 class VarDescriptionHashable(VarDescription):
