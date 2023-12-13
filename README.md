@@ -88,7 +88,9 @@ df = pd.read_csv(
 Create supervised report with target column `Survived` and target positive values `1`:
 
 ```python
-profile = ProfileReport(df, title='titanic_small', target_col='Survived', target_positive_values=['1'])
+profile = ProfileReport(
+    df, title='titanic_small', target_col='Survived', target_positive_values=['1']
+)
 ```
 
 ### Using inside Jupyter Notebooks
