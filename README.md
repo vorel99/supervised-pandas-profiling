@@ -93,6 +93,30 @@ profile = ProfileReport(
 )
 ```
 
+for enabling `models` and `transformations`, you need to create configuration file `my_config.yaml`:
+
+```yaml
+
+```yaml
+# Setting for generating report from description.
+report:
+  # create model module
+  model_module: True
+  # create transformations module
+  transform_module: True
+
+model:
+      evaluation_metric: "precision"  # "accuracy", "precision", "recall", "f1_score"
+```
+
+and add config to `ProfileReport`:
+
+```python
+profile = ProfileReport(
+    df, title='titanic_supervised',target_col='Survived', config_file='my_config.yaml'
+)
+```
+
 ### Using inside Jupyter Notebooks
 
 There are two interfaces to consume the report inside a Jupyter notebook: through widgets and through an embedded HTML report.
