@@ -89,7 +89,7 @@ Create supervised report with target column `Survived` and target positive value
 
 ```python
 profile = ProfileReport(
-    df, title='titanic_small', target_col='Survived', target_positive_values=['1']
+    df, title='titanic_supervised', target_col='Survived', target_positive_values=['1']
 )
 ```
 
