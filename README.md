@@ -55,6 +55,8 @@ The report contains three additional sections:
 
 ## ▶️ Quickstart
 
+### Unsupervised profile
+
 Start by loading your pandas `DataFrame` as you normally would, e.g. by using:
 
 ```python
@@ -69,6 +71,24 @@ To generate the standard profiling report, merely run:
 
 ```python
 profile = ProfileReport(df, title="Pandas Profiling Report")
+```
+
+### Supervised profile
+
+Load titanic dataframe:
+
+```python
+import pandas as pd
+
+df = pd.read_csv(
+    "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
+)
+```
+
+Create supervised report with target column `Survived` and target positive values `1`:
+
+```python
+profile = ProfileReport(df, title='titanic_small', target_col='Survived', target_positive_values=['1'])
 ```
 
 ### Using inside Jupyter Notebooks
@@ -189,37 +209,37 @@ The profiling report is written in HTML and CSS, which means a modern browser is
 
 You need [Python 3](https://python3statement.org/) to run the package. Other dependencies can be found in the requirements files:
 
-| Filename | Requirements|
-|----------|-------------|
-| [requirements.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements.txt) | Package requirements|
-| [requirements-dev.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-dev.txt)  |  Requirements for development|
-| [requirements-test.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-test.txt) | Requirements for testing|
-| [setup.py](https://github.com/ydataai/pandas-profiling/blob/master/setup.py) | Requirements for widgets etc. |
+| Filename                                                                                               | Requirements                  |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| [requirements.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements.txt)           | Package requirements          |
+| [requirements-dev.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-dev.txt)   | Requirements for development  |
+| [requirements-test.txt](https://github.com/ydataai/pandas-profiling/blob/master/requirements-test.txt) | Requirements for testing      |
+| [setup.py](https://github.com/ydataai/pandas-profiling/blob/master/setup.py)                           | Requirements for widgets etc. |
 
 ## 📝 Use cases
 
 The documentation includes guides, tips and tricks for tackling common use cases:
 
-| Use case                                                                                                                            | Description |
-|-------------------------------------------------------------------------------------------------------------------------------------|--|
+| Use case                                                                                                                            | Description                                                                                  |
+| ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | [Profiling large datasets](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/big_data.html )                            | Tips on how to prepare data and configure `pandas-profiling` for working with large datasets |
-| [Handling sensitive data](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/sensitive_data.html )                       | Generating reports which are mindful about sensitive data in the input dataset |
-| [Comparing datasets](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/comparing_datasets.html )                        | Comparing multiple version of the same dataset |
-| [Dataset metadata and data dictionaries](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/metadata.html)               | Complementing the report with dataset details and column-specific data dictionaries |
-| [Customizing the report's appearance](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/custom_report_appearance.html ) | Changing the appearance of the report's page and of the contained visualizations |
+| [Handling sensitive data](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/sensitive_data.html )                       | Generating reports which are mindful about sensitive data in the input dataset               |
+| [Comparing datasets](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/comparing_datasets.html )                        | Comparing multiple version of the same dataset                                               |
+| [Dataset metadata and data dictionaries](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/metadata.html)               | Complementing the report with dataset details and column-specific data dictionaries          |
+| [Customizing the report's appearance](https://pandas-profiling.ydata.ai/docs/master/pages/use_cases/custom_report_appearance.html ) | Changing the appearance of the report's page and of the contained visualizations             |
 
 ## 🔗 Integrations
 
 To maximize its usefulness in real world contexts, `pandas-profiling` has a set of implicit and explicit integrations with a variety of other actors in the Data Science ecosystem: 
 
-| Integration type | Description |
-|---|---|
-| [Other DataFrame libraries](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/other_dataframe_libraries.html) | How to compute the profiling of data stored in libraries other than pandas |
-| [Great Expectations](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/great_expectations.html) | Generating [Great Expectations](https://greatexpectations.io) expectations suites directly from a profiling report |
-| [Interactive applications](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/data_apps.html) | Embedding profiling reports in [Streamlit](http://streamlit.io), [Dash](http://dash.plotly.com) or [Panel](https://panel.holoviz.org) applications |
-| [Pipelines](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/pipelines.html) | Integration with DAG workflow execution tools like [Airflow](https://airflow.apache.org) or [Kedro](https://kedro.org) |
-| [Cloud services](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/cloud_services.html) | Using `pandas-profiling` in hosted computation services like [Lambda](https://lambdalabs.com), [Google Cloud](https://github.com/GoogleCloudPlatform/analytics-componentized-patterns/blob/master/retail/propensity-model/bqml/bqml_kfp_retail_propensity_to_purchase.ipynb) or [Kaggle](https://www.kaggle.com/code) |
-| [IDEs](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/ides.html) | Using `pandas-profiling` directly from integrated development environments such as [PyCharm](https://www.jetbrains.com/pycharm/) |
+| Integration type                                                                                                             | Description                                                                                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Other DataFrame libraries](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/other_dataframe_libraries.html) | How to compute the profiling of data stored in libraries other than pandas                                                                                                                                                                                                                                            |
+| [Great Expectations](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/great_expectations.html)               | Generating [Great Expectations](https://greatexpectations.io) expectations suites directly from a profiling report                                                                                                                                                                                                    |
+| [Interactive applications](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/data_apps.html)                  | Embedding profiling reports in [Streamlit](http://streamlit.io), [Dash](http://dash.plotly.com) or [Panel](https://panel.holoviz.org) applications                                                                                                                                                                    |
+| [Pipelines](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/pipelines.html)                                 | Integration with DAG workflow execution tools like [Airflow](https://airflow.apache.org) or [Kedro](https://kedro.org)                                                                                                                                                                                                |
+| [Cloud services](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/cloud_services.html)                       | Using `pandas-profiling` in hosted computation services like [Lambda](https://lambdalabs.com), [Google Cloud](https://github.com/GoogleCloudPlatform/analytics-componentized-patterns/blob/master/retail/propensity-model/bqml/bqml_kfp_retail_propensity_to_purchase.ipynb) or [Kaggle](https://www.kaggle.com/code) |
+| [IDEs](https://pandas-profiling.ydata.ai/docs/master/pages/integrations/ides.html)                                           | Using `pandas-profiling` directly from integrated development environments such as [PyCharm](https://www.jetbrains.com/pycharm/)                                                                                                                                                                                      |
 
 ## 🙋 Support
 Need help? Want to share a perspective? Report a bug? Ideas for collaborations? Reach out via the following channels:
