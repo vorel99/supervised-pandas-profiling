@@ -26,3 +26,4 @@ statsmodels>=0.13.2, <0.14
 typeguard>=2.13.2, <2.14
 # classification model
 lightgbm>=3.3
+scikit-learn>=1.2, <1.3
