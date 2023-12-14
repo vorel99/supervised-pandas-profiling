@@ -96,8 +96,6 @@ profile = ProfileReport(
 for enabling `models` and `transformations`, you need to create configuration file `my_config.yaml`:
 
 ```yaml
-
-```yaml
 # Setting for generating report from description.
 report:
   # create model module
